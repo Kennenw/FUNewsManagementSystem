@@ -1,0 +1,103 @@
+﻿@model NewsArticleListViewModel
+
+
+@{
+    ViewData["Title"] = "News Articles";
+}
+
+
+<h1>News Articles</h1>
+
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="searchQuery" value="@Model.SearchQuery" class="form-control" placeholder="Search by title or content" />
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+    <input type="hidden" name="sortBy" value="@Model.SortBy" />
+    <input type="hidden" name="sortOrder" value="@Model.SortOrder" />
+    <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+    <input type="hidden" name="pageSize" value="@Model.PageSize" />
+</form>
+
+<div class="mb-3">
+    <label>Sort by:</label>
+    <a asp-action="Index" asp-all-route-data="@(new Dictionary<string, string> {
+        { "searchQuery", Model.SearchQuery },
+        { "sortBy", "Title" },
+        { "sortOrder", Model.SortBy == "Title" && Model.SortOrder == "asc" ? "desc" : "asc" },
+        { "pageNumber", "1" },
+        { "pageSize", Model.PageSize.ToString() }
+    })" class="btn btn-link">
+        Title @(Model.SortBy == "Title" ? (Model.SortOrder == "asc" ? "↑" : "↓") : "")
+    </a>
+    <a asp-action="Index" asp-all-route-data="@(new Dictionary<string, string> {
+        { "searchQuery", Model.SearchQuery },
+        { "sortBy", "CreatedDate" },
+        { "sortOrder", Model.SortBy == "CreatedDate" && Model.SortOrder == "asc" ? "desc" : "asc" },
+        { "pageNumber", "1" },
+        { "pageSize", Model.PageSize.ToString() }
+    })" class="btn btn-link">
+        Created Date @(Model.SortBy == "CreatedDate" ? (Model.SortOrder == "asc" ? "↑" : "↓") : "")
+    </a>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Content</th>
+            <th>Created Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var article in Model.Articles)
+        {
+            <tr>
+                <td>@article.NewsTitle</td>
+                <td>@article.NewsContent</td>
+                <td>@article.CreatedDate.ToString("yyyy-MM-dd")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Pagination -->
+<nav aria-label="Page navigation">
+    <ul class="pagination">
+        <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+            <a class="page-link" asp-action="Index" asp-all-route-data="@(new Dictionary<string, string> {
+                { "searchQuery", Model.SearchQuery },
+                { "sortBy", Model.SortBy },
+                { "sortOrder", Model.SortOrder },
+                { "pageNumber", (Model.PageNumber - 1).ToString() },
+                { "pageSize", Model.PageSize.ToString() }
+            })">Previous</a>
+        </li>
+        @for (var i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                <a class="page-link" asp-action="Index" asp-all-route-data="@(new Dictionary<string, string> {
+                    { "searchQuery", Model.SearchQuery },
+                    { "sortBy", Model.SortBy },
+                    { "sortOrder", Model.SortOrder },
+                    { "pageNumber", i.ToString() },
+                    { "pageSize", Model.PageSize.ToString() }
+                })">@i</a>
+            </li>
+        }
+        <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+            <a class="page-link" asp-action="Index" asp-all-route-data="@(new Dictionary<string, string> {
+                { "searchQuery", Model.SearchQuery },
+                { "sortBy", Model.SortBy },
+                { "sortOrder", Model.SortOrder },
+                { "pageNumber", (Model.PageNumber + 1).ToString() },
+                { "pageSize", Model.PageSize.ToString() }
+            })">Next</a>
+        </li>
+    </ul>
+</nav>
+
+@if (!string.IsNullOrEmpty(ViewBag.Error))
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
