@@ -1,5 +1,6 @@
 ﻿
 using FUNewsManagementSystem.Reposirories.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace FUNewsManagementSystem.Reposirories.Repository
 {
@@ -7,6 +8,11 @@ namespace FUNewsManagementSystem.Reposirories.Repository
     {
         public CategoryRepository(FunewsManagementContext context) : base(context)
         {
+        }
+
+        public async Task<bool> CheckCategoryAsync(short id)
+        {
+            return await _context.NewsArticles.AnyAsync(c => c.CategoryId == id);
         }
     }
 }

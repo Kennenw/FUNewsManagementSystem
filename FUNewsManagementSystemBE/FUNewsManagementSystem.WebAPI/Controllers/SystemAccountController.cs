@@ -1,6 +1,7 @@
 ﻿using FUNewsManagementSystem.Reposirories.Models;
 using FUNewsManagementSystem.Reposirories.ViewModels;
 using FUNewsManagementSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
@@ -24,7 +25,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
 
         [EnableQuery]
         [HttpGet]
-        
+        [Authorize(Policy = "Admin")]
         public ActionResult<IQueryable<SystemAccount>> Get()
         {
             var accounts = _service.GetAllAsync();
@@ -32,10 +33,11 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         }
 
         [EnableQuery]
-        [HttpGet("{key}")]
-        public async Task<IActionResult> Get(short key)
+        [HttpGet("{id}")]
+        [Authorize(Policy = "Admin")]
+        public async Task<IActionResult> Get(short id)
         {
-            var account = await _service.GetByIdAsync(key);
+            var account = await _service.GetByIdAsync(id);
             if (account != null)
             {
                 return Ok(account);
@@ -44,6 +46,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Admin")]
         public async Task<IActionResult> Post([FromBody] SystemAccount account)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -51,20 +54,27 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
             return Created(account);
         }
 
-        [HttpPut("{key}")]
-        public async Task<IActionResult> Put(short key, [FromBody] SystemAccount account)
+        [HttpPut("{id}")]
+        [Authorize(Policy = "Admin")]
+        public async Task<IActionResult> Put(short id, [FromBody] SystemAccount account)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            account.AccountId = key;
+            account.AccountId = id;
             await _service.UpdateAsync(account);
             return Updated(account);
         }
 
-        [HttpDelete("{key}")]
-        public async Task<IActionResult> Delete(short key)
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "Admin")]
+        public async Task<IActionResult> Delete(short id)
         {
-            await _service.DeleteAsync(key);
-            return NoContent();
+            var hasNews = await _service.CheckUserAsync(id);
+            if (hasNews)
+            {
+                return BadRequest("Cannot delete account: it has existing news articles or not found user.");
+            }
+            await _service.DeleteAsync(id);
+            return Ok("Account deleted successfully.");
         }
     }
 }

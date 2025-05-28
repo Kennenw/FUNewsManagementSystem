@@ -17,5 +17,10 @@ namespace FUNewsManagementSystem.Reposirories.Repository
             return await _context.SystemAccounts
                 .FirstOrDefaultAsync(sa => sa.AccountEmail.Equals(model.Email) && sa.AccountPassword.Equals(model.Password));
         }
+
+        public async Task<bool> CheckUserAsync(short id)
+        {
+            return await _context.NewsArticles.AnyAsync(article => article.CreatedById == id);
+        }
     }
 }

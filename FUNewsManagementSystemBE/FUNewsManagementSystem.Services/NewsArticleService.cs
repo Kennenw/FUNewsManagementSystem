@@ -26,9 +26,7 @@ namespace FUNewsManagementSystem.Services
 
         public IQueryable<NewsArticle> GetAllAsync()
         {
-            var result = _unitOfWork._newsArticleRepository.GetAll();
-            Console.WriteLine($"Query type: {result.GetType().Name}");
-            return result;
+            return _unitOfWork._newsArticleRepository.GetAll();
         }
 
         public async Task<NewsArticle?> GetByIdAsync(string id)

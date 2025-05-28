@@ -13,5 +13,6 @@ namespace FUNewsManagementSystem.Services
         Task UpdateAsync(SystemAccount entity);
         Task DeleteAsync(short id);
         Task<SystemAccount?> LoginAsync(LoginRequestViewModel model);
+        Task<bool> CheckUserAsync(short id);
     }
 }

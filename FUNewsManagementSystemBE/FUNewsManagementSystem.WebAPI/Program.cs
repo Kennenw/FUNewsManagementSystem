@@ -42,6 +42,7 @@ namespace FUNewsManagementSystem.WebAPI
             var odataBuilder = new ODataConventionModelBuilder();
             odataBuilder.EntitySet<SystemAccount>("SystemAccounts");
             odataBuilder.EntitySet<NewsArticle>("NewsArticles");
+            odataBuilder.EntitySet<Category>("Categories");
 
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>

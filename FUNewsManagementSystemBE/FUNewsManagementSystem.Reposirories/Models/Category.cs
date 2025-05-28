@@ -8,9 +8,11 @@ public partial class Category
 {
     [Key]
     public short CategoryId { get; set; }
-
+    [Required]
+    [MaxLength(100)]
     public string CategoryName { get; set; } = null!;
-
+    [Required]
+    [MaxLength(250)]
     public string CategoryDesciption { get; set; } = null!;
 
     public short? ParentCategoryId { get; set; }

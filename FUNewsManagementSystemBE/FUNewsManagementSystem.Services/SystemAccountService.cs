@@ -44,5 +44,15 @@ namespace FUNewsManagementSystem.Services
             await _unitOfWork._systemAccountRepository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();
         }
+
+        public async Task<bool> CheckUserAsync(short id)
+        {
+            var user = await _unitOfWork._systemAccountRepository.GetByIdAsync(id);
+            if(user != null)
+            {
+                return await _unitOfWork._systemAccountRepository.CheckUserAsync(id);
+            }
+            return true;
+        }
     }
 }

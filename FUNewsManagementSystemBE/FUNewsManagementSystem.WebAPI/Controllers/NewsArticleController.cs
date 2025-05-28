@@ -1,7 +1,6 @@
 ﻿using FUNewsManagementSystem.Reposirories.Models;
 using FUNewsManagementSystem.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
@@ -21,7 +20,6 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
 
         [EnableQuery]
         [HttpGet]
-        [Authorize(Policy = "Staff")]
         public ActionResult<IQueryable<NewsArticle>> Get()
         {
             var newsArticle = _service.GetAllAsync();
@@ -29,10 +27,10 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         }
 
         [EnableQuery]
-        [HttpGet("{key}")]
-        public async Task<IActionResult> Get(string key)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(string id)
         {
-            var newsArticle = await _service.GetByIdAsync(key);
+            var newsArticle = await _service.GetByIdAsync(id);
             if (newsArticle != null)
             {
                 return Ok(newsArticle);
@@ -41,6 +39,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Staff")]
         public async Task<IActionResult> Post([FromBody] NewsArticle newsArticle)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -48,19 +47,21 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
             return Created(newsArticle);
         }
 
-        [HttpPut("{key}")]
-        public async Task<IActionResult> Put(string key, [FromBody] NewsArticle newsArticle)
+        [HttpPut("{id}")]
+        [Authorize(Policy = "Staff")]
+        public async Task<IActionResult> Put(string id, [FromBody] NewsArticle newsArticle)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            newsArticle.NewsArticleId = key;
+            newsArticle.NewsArticleId = id;
             await _service.UpdateAsync(newsArticle);
             return Updated(newsArticle);
         }
 
-        [HttpDelete("{key}")]
-        public async Task<IActionResult> Delete(string key)
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "Staff")]
+        public async Task<IActionResult> Delete(string id)
         {
-            await _service.DeleteAsync(key);
+            await _service.DeleteAsync(id);
             return NoContent();
         }
     }
