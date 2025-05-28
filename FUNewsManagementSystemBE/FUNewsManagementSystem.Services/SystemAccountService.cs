@@ -1,6 +1,7 @@
 ﻿
 using FUNewsManagementSystem.Reposirories;
 using FUNewsManagementSystem.Reposirories.Models;
+using FUNewsManagementSystem.Reposirories.ViewModels;
 
 namespace FUNewsManagementSystem.Services
 {
@@ -31,6 +32,11 @@ namespace FUNewsManagementSystem.Services
         public async Task<SystemAccount?> GetByIdAsync(short id)
         {
             return await _unitOfWork._systemAccountRepository.GetByIdAsync(id);
+        }
+
+        public async Task<SystemAccount?> LoginAsync(LoginRequestViewModel model)
+        {
+            return await _unitOfWork._systemAccountRepository.LoginAsync(model);
         }
 
         public async Task UpdateAsync(SystemAccount entity)

@@ -1,8 +1,13 @@
 ﻿using FUNewsManagementSystem.Reposirories.Models;
+using FUNewsManagementSystem.Reposirories.ViewModels;
 using FUNewsManagementSystem.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace FUNewsManagementSystem.WebAPI.Controllers
 {
@@ -19,6 +24,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
 
         [EnableQuery]
         [HttpGet]
+        
         public ActionResult<IQueryable<SystemAccount>> Get()
         {
             var accounts = _service.GetAllAsync();

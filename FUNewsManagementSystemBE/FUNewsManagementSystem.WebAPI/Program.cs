@@ -3,9 +3,13 @@ using FUNewsManagementSystem.Reposirories;
 using FUNewsManagementSystem.Reposirories.Models;
 using FUNewsManagementSystem.Reposirories.Repository;
 using FUNewsManagementSystem.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OData.ModelBuilder;
+using Microsoft.OpenApi.Models;
+using System.Text;
 using System.Text.Json.Serialization;
 
 namespace FUNewsManagementSystem.WebAPI
@@ -15,6 +19,11 @@ namespace FUNewsManagementSystem.WebAPI
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            IConfiguration configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true).Build();
+
+            var AdminRoleId = configuration["Roles:AdminRoleId"];
 
             // Add services to the container.
             builder.Services.AddDbContext<FunewsManagementContext>(options =>
@@ -31,8 +40,8 @@ namespace FUNewsManagementSystem.WebAPI
             builder.Services.AddScoped<ISystemAccountService, SystemAccountService>();
 
             var odataBuilder = new ODataConventionModelBuilder();
-                odataBuilder.EntitySet<SystemAccount>("SystemAccounts");
-                odataBuilder.EntitySet<NewsArticle>("NewsArticles");
+            odataBuilder.EntitySet<SystemAccount>("SystemAccounts");
+            odataBuilder.EntitySet<NewsArticle>("NewsArticles");
 
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -57,7 +66,77 @@ namespace FUNewsManagementSystem.WebAPI
                     });
             });
 
-            builder.Services.AddControllers();
+            builder.Services.AddAuthentication(x =>
+                            {
+                                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                            })
+                            .AddJwtBearer(x =>
+                            {
+                                x.SaveToken = true;
+                                x.TokenValidationParameters = new TokenValidationParameters
+                                {
+                                    ValidateIssuer = false,
+                                    ValidateAudience = false,
+                                    ValidateLifetime = false,
+                                    ValidIssuer = configuration["JWT:Issuer"],
+                                    ValidAudience = configuration["JWT:Audience"],
+                                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]))
+                                };
+                            });
+
+            // Add Swagger JWT configuration
+            builder.Services.AddSwaggerGen(c =>
+            {
+                var jwtSecurityScheme = new OpenApiSecurityScheme
+                {
+                    Name = "JWT Authentication",
+                    Description = "JWT Authentication for Cosmetics Management",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT"
+                };
+
+                c.AddSecurityDefinition("Bearer", jwtSecurityScheme);
+
+                var securityRequirement = new OpenApiSecurityRequirement
+                                            {
+                                                {
+                                                    new OpenApiSecurityScheme
+                                                    {
+                                                        Reference = new OpenApiReference
+                                                        {
+                                                            Type = ReferenceType.SecurityScheme,
+                                                            Id = "Bearer"
+                                                        }
+                                                    },
+                                                    new string[] {}
+                                                }
+                                            };
+
+                c.AddSecurityRequirement(securityRequirement);
+            });
+
+            builder.Services.AddAuthorization(options =>
+            {
+
+                options.AddPolicy("Staff",
+                    policyBuilder => policyBuilder.RequireAssertion(
+                        context => context.User.HasClaim(claim => claim.Type == "Role") &&
+                        context.User.FindFirst(claim => claim.Type == "Role").Value == "1"));
+
+                options.AddPolicy("Lecturer",
+                    policyBuilder => policyBuilder.RequireAssertion(
+                        context => context.User.HasClaim(claim => claim.Type == "Role")
+                        && (context.User.FindFirst(claim => claim.Type == "Role").Value == "2")));
+
+                options.AddPolicy("Admin",
+                    policyBuilder => policyBuilder.RequireAssertion(
+                        context => context.User.HasClaim(claim => claim.Type == "Role")
+                        && (context.User.FindFirst(claim => claim.Type == "Role").Value == AdminRoleId)));
+                }
+            );
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -79,6 +158,7 @@ namespace FUNewsManagementSystem.WebAPI
 
             app.UseAuthorization();
 
+            app.MapControllers();
 
             app.MapControllers();
 

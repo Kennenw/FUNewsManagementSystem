@@ -1,5 +1,6 @@
 ﻿using FUNewsManagementSystem.Reposirories.Models;
 using FUNewsManagementSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -20,6 +21,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
 
         [EnableQuery]
         [HttpGet]
+        [Authorize(Policy = "Staff")]
         public ActionResult<IQueryable<NewsArticle>> Get()
         {
             var newsArticle = _service.GetAllAsync();

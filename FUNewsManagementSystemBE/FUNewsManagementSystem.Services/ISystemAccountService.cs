@@ -1,6 +1,7 @@
 ﻿
 
 using FUNewsManagementSystem.Reposirories.Models;
+using FUNewsManagementSystem.Reposirories.ViewModels;
 
 namespace FUNewsManagementSystem.Services
 {
@@ -11,5 +12,6 @@ namespace FUNewsManagementSystem.Services
         Task AddAsync(SystemAccount entity);
         Task UpdateAsync(SystemAccount entity);
         Task DeleteAsync(short id);
+        Task<SystemAccount?> LoginAsync(LoginRequestViewModel model);
     }
 }
