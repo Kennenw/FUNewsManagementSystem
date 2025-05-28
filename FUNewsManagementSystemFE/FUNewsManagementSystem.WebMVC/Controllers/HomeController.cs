@@ -20,6 +20,12 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
         {
             try
             {
+                var token = Request.Cookies["Token"];
+                if (string.IsNullOrEmpty(token))
+                {
+                    return RedirectToAction("Index", "Auth");
+                }
+
                 var query = "NewsArticles?$count=true";
                 if (!string.IsNullOrEmpty(searchQuery))
                 {

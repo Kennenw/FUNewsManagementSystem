@@ -6,6 +6,7 @@ using FUNewsManagementSystem.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
@@ -38,11 +39,14 @@ namespace FUNewsManagementSystem.WebAPI
 
             builder.Services.AddScoped<INewsArticleService, NewsArticleService>();
             builder.Services.AddScoped<ISystemAccountService, SystemAccountService>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+
 
             var odataBuilder = new ODataConventionModelBuilder();
             odataBuilder.EntitySet<SystemAccount>("SystemAccounts");
             odataBuilder.EntitySet<NewsArticle>("NewsArticles");
             odataBuilder.EntitySet<Category>("Categories");
+            odataBuilder.EntitySet<Tag>("Tags");
 
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -88,6 +92,8 @@ namespace FUNewsManagementSystem.WebAPI
             // Add Swagger JWT configuration
             builder.Services.AddSwaggerGen(c =>
             {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Web API", Version = "v1" });
+
                 var jwtSecurityScheme = new OpenApiSecurityScheme
                 {
                     Name = "JWT Authentication",
@@ -114,6 +120,10 @@ namespace FUNewsManagementSystem.WebAPI
                                                     new string[] {}
                                                 }
                                             };
+                c.ResolveConflictingActions(apiDescriptions =>
+                {
+                    return apiDescriptions.First();
+                });
 
                 c.AddSecurityRequirement(securityRequirement);
             });
@@ -140,7 +150,6 @@ namespace FUNewsManagementSystem.WebAPI
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
@@ -157,9 +166,8 @@ namespace FUNewsManagementSystem.WebAPI
 
             app.UseCors("AllowOrigins");
 
+            app.UseAuthentication(); 
             app.UseAuthorization();
-
-            app.MapControllers();
 
             app.MapControllers();
 

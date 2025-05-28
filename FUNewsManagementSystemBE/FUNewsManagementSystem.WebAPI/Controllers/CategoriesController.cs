@@ -5,6 +5,7 @@ using FUNewsManagementSystem.Reposirories.Models;
 using FUNewsManagementSystem.Services;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.AspNetCore.OData.Routing.Attributes;
 using Microsoft.AspNetCore.Authorization;
 
 namespace FUNewsManagementSystem.WebAPI.Controllers
@@ -31,23 +32,21 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         // GET: api/Categories/5
         [EnableQuery]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> Get(short id)
+        public async Task<IActionResult> Get(short id)
         {
             var category = await _service.GetByIdAsync(id);
-
-            if (category == null)
+            if (category != null)
             {
-                return NotFound();
+                return Ok(category);
             }
-
-            return category;
+            return NotFound();
         }
 
         // PUT: api/Categories/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [Authorize(Policy = "Staff")]
-        public async Task<IActionResult> Put(short id, Category category)
+        public async Task<IActionResult> Put(short id, [FromBody] Category category)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             category.CategoryId = id;
@@ -59,7 +58,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize(Policy = "Staff")]
-        public async Task<ActionResult<Category>> Post(Category category)
+        public async Task<IActionResult> Post([FromBody]Category category)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             await _service.AddAsync(category);
