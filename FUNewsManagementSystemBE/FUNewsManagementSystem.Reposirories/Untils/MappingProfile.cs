@@ -8,11 +8,17 @@ namespace FUNewsManagementSystem.Reposirories.Untils
     {
         public MappingProfile()
         {
-            CreateMap<NewsArticle, CreateNewsArticleViewModels>();
             CreateMap<CreateNewsArticleViewModels, NewsArticle>();
 
-            CreateMap<NewsArticle, UpdateNewsArticleViewModels>();
             CreateMap<UpdateNewsArticleViewModels, NewsArticle>();
+
+            CreateMap<CreateCategoryViewModels, Category>();
+
+            CreateMap<UpdateCategoryViewModels, Category>();
+
+            CreateMap<UpdateSystemAccountViewModel, SystemAccount>();
+
+            CreateMap<CreateSystemAccountViewModel, SystemAccount>();
         }
     }
 }

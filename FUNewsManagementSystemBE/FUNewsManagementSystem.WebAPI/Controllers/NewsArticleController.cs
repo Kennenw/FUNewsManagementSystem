@@ -1,4 +1,5 @@
 ﻿using FUNewsManagementSystem.Reposirories.Models;
+using FUNewsManagementSystem.Reposirories.ViewModels;
 using FUNewsManagementSystem.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +41,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
 
         [HttpPost]
         [Authorize(Policy = "Staff")]
-        public async Task<IActionResult> Post([FromBody] NewsArticle newsArticle)
+        public async Task<IActionResult> Post([FromBody] CreateNewsArticleViewModels newsArticle)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             await _service.AddAsync(newsArticle);
@@ -49,11 +50,10 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Policy = "Staff")]
-        public async Task<IActionResult> Put(string id, [FromBody] NewsArticle newsArticle)
+        public async Task<IActionResult> Put(string id, [FromBody] UpdateNewsArticleViewModels newsArticle)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            newsArticle.NewsArticleId = id;
-            await _service.UpdateAsync(newsArticle);
+            await _service.UpdateAsync(id,newsArticle);
             return Updated(newsArticle);
         }
 

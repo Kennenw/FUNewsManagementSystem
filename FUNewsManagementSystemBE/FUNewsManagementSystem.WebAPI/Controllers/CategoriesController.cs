@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.AspNetCore.OData.Routing.Attributes;
 using Microsoft.AspNetCore.Authorization;
+using FUNewsManagementSystem.Reposirories.ViewModels;
 
 namespace FUNewsManagementSystem.WebAPI.Controllers
 {
@@ -46,11 +47,10 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [Authorize(Policy = "Staff")]
-        public async Task<IActionResult> Put(short id, [FromBody] Category category)
+        public async Task<IActionResult> Put(short id, [FromBody] UpdateCategoryViewModels category)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            category.CategoryId = id;
-            await _service.UpdateAsync(category);
+            await _service.UpdateAsync(id, category);
             return Updated(category);
         }
 
@@ -58,7 +58,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize(Policy = "Staff")]
-        public async Task<IActionResult> Post([FromBody]Category category)
+        public async Task<IActionResult> Post([FromBody]CreateCategoryViewModels category)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             await _service.AddAsync(category);

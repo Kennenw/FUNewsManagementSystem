@@ -1,19 +1,24 @@
 ﻿
+using AutoMapper;
 using FUNewsManagementSystem.Reposirories;
 using FUNewsManagementSystem.Reposirories.Models;
+using FUNewsManagementSystem.Reposirories.ViewModels;
 
 namespace FUNewsManagementSystem.Services
 {
     public class CategoryService : ICategoryService
     {
-        public IUnitOfWork _unitOfWork;
-        public CategoryService(IUnitOfWork unitOfWork)
+        public readonly IUnitOfWork _unitOfWork;
+        public readonly IMapper _mapper;
+        public CategoryService(IUnitOfWork unitOfWork, IMapper mapper)
         {
+            _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
-        public async Task AddAsync(Category entity)
+        public async Task AddAsync(CreateCategoryViewModels entity)
         {
-            await _unitOfWork._categoryRepository.AddAsync(entity);
+            Category category = _mapper.Map<Category>(entity);
+            await _unitOfWork._categoryRepository.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -48,10 +53,14 @@ namespace FUNewsManagementSystem.Services
             return _unitOfWork._categoryRepository.GetByIdAsync(id);
         }
 
-        public async Task UpdateAsync(Category entity)
+        public async Task UpdateAsync(short id, UpdateCategoryViewModels entity)
         {
-            await _unitOfWork._categoryRepository.UpdateAsync(entity);
+            var item = await _unitOfWork._categoryRepository.GetByIdAsync(id);
+            if (item == null) return;
+            _mapper.Map(entity, item);
+            await _unitOfWork._categoryRepository.UpdateAsync(item);
             await _unitOfWork.SaveChangesAsync();
         }
+
     }
 }

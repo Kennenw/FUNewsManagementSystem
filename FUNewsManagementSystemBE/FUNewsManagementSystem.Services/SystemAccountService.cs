@@ -1,20 +1,27 @@
 ﻿
+using AutoMapper;
 using FUNewsManagementSystem.Reposirories;
 using FUNewsManagementSystem.Reposirories.Models;
 using FUNewsManagementSystem.Reposirories.ViewModels;
+using Microsoft.Extensions.Options;
 
 namespace FUNewsManagementSystem.Services
 {
     public class SystemAccountService : ISystemAccountService
     {
         public IUnitOfWork _unitOfWork;
-        public SystemAccountService(IUnitOfWork unitOfWork)
+        private readonly AdminAccount _adminAccount;
+        private readonly IMapper _mapper;
+        public SystemAccountService(IUnitOfWork unitOfWork, IOptions<AdminAccount> adminAccount, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
+            _adminAccount = adminAccount.Value;
         }
-        public async Task AddAsync(SystemAccount entity)
+        public async Task AddAsync(CreateSystemAccountViewModel entity)
         {
-            await _unitOfWork._systemAccountRepository.AddAsync(entity);
+            SystemAccount systemAccount = _mapper.Map<SystemAccount>(entity);
+            await _unitOfWork._systemAccountRepository.AddAsync(systemAccount);
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -36,12 +43,24 @@ namespace FUNewsManagementSystem.Services
 
         public async Task<SystemAccount?> LoginAsync(LoginRequestViewModel model)
         {
-            return await _unitOfWork._systemAccountRepository.LoginAsync(model);
+            if (model.Email == _adminAccount.Email && model.Password == _adminAccount.Password)
+            {
+                return new SystemAccount { 
+                    AccountEmail = model.Email,
+                    AccountRole = int.Parse(_adminAccount.Role)
+                };
+            }
+            var user = await _unitOfWork._systemAccountRepository.LoginAsync(model);
+            return user;
         }
 
-        public async Task UpdateAsync(SystemAccount entity)
+
+        public async Task UpdateAsync(short id, UpdateSystemAccountViewModel entity)
         {
-            await _unitOfWork._systemAccountRepository.UpdateAsync(entity);
+            var item = await _unitOfWork._systemAccountRepository.GetByIdAsync(id);
+            if (item == null) return;
+            _mapper.Map(entity, item);
+            await _unitOfWork._systemAccountRepository.UpdateAsync(item);
             await _unitOfWork.SaveChangesAsync();
         }
 

@@ -2,6 +2,7 @@
 using FUNewsManagementSystem.Reposirories;
 using FUNewsManagementSystem.Reposirories.Models;
 using FUNewsManagementSystem.Reposirories.Repository;
+using FUNewsManagementSystem.Reposirories.ViewModels;
 using FUNewsManagementSystem.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
@@ -24,7 +25,10 @@ namespace FUNewsManagementSystem.WebAPI
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true, true).Build();
 
-            var AdminRoleId = configuration["Roles:AdminRoleId"];
+            var AdminRoleId = configuration["AdminAccount:Role"];
+            builder.Services.Configure<AdminAccount>(
+            builder.Configuration.GetSection("AdminAccount"));
+
 
             // Add services to the container.
             builder.Services.AddDbContext<FunewsManagementContext>(options =>

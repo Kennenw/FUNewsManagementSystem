@@ -1,20 +1,25 @@
 ﻿
 
+using AutoMapper;
 using FUNewsManagementSystem.Reposirories;
 using FUNewsManagementSystem.Reposirories.Models;
+using FUNewsManagementSystem.Reposirories.ViewModels;
 
 namespace FUNewsManagementSystem.Services
 {
     public class NewsArticleService : INewsArticleService
     {
         public IUnitOfWork _unitOfWork;
-        public NewsArticleService(IUnitOfWork unitOfWork)
+        public readonly IMapper _mapper;
+        public NewsArticleService(IUnitOfWork unitOfWork, IMapper mapper)
         {
+            _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
-        public async Task AddAsync(NewsArticle entity)
+        public async Task AddAsync(CreateNewsArticleViewModels entity)
         {
-            await _unitOfWork._newsArticleRepository.AddAsync(entity);
+            NewsArticle newsArticle = _mapper.Map<NewsArticle>(entity);
+            await _unitOfWork._newsArticleRepository.AddAsync(newsArticle);
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -39,9 +44,12 @@ namespace FUNewsManagementSystem.Services
             return await _unitOfWork._newsArticleRepository.GetByIdAsync(id);
         }
 
-        public async Task UpdateAsync(NewsArticle entity)
+        public async Task UpdateAsync(string id, UpdateNewsArticleViewModels entity)
         {
-            await _unitOfWork._newsArticleRepository.UpdateAsync(entity);
+            var item = await _unitOfWork._newsArticleRepository.GetByIdAsync(id);
+            if (item == null) return;
+            _mapper.Map(entity, item);
+            await _unitOfWork._newsArticleRepository.UpdateAsync(item);
             await _unitOfWork.SaveChangesAsync();
         }
     }

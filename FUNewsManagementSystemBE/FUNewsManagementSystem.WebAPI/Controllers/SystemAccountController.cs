@@ -47,7 +47,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
 
         [HttpPost]
         [Authorize(Policy = "Admin")]
-        public async Task<IActionResult> Post([FromBody] SystemAccount account)
+        public async Task<IActionResult> Post([FromBody] CreateSystemAccountViewModel account)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             await _service.AddAsync(account);
@@ -56,11 +56,10 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Policy = "Admin")]
-        public async Task<IActionResult> Put(short id, [FromBody] SystemAccount account)
+        public async Task<IActionResult> Put(short id, [FromBody] UpdateSystemAccountViewModel account)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            account.AccountId = id;
-            await _service.UpdateAsync(account);
+            await _service.UpdateAsync(id,account);
             return Updated(account);
         }
 

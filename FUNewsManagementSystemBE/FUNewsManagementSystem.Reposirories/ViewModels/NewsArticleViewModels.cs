@@ -15,9 +15,8 @@ namespace FUNewsManagementSystem.Reposirories.ViewModels
     {
         [MaxLength(400)]
         public string? NewsTitle { get; set; }
-        [Required]
         [MaxLength(150)]
-        public string Headline { get; set; } = null!;
+        public string? Headline { get; set; } = null!;
 
         [MaxLength(4000)]
         public string? NewsContent { get; set; }
