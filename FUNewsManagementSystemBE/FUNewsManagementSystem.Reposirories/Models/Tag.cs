@@ -7,7 +7,6 @@ namespace FUNewsManagementSystem.Reposirories.Models;
 public partial class Tag
 {
     [Key]
-    [Required]
     public int TagId { get; set; }
     [MaxLength(50)]
     public string? TagName { get; set; }

@@ -17,6 +17,11 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
         public IActionResult Index()
         {
+            var token = Request.Cookies["Token"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View(new LoginRequestViewModel());
         }
 

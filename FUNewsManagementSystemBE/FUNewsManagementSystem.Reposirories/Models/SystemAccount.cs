@@ -7,7 +7,6 @@ namespace FUNewsManagementSystem.Reposirories.Models;
 public partial class SystemAccount
 {
     [Key]
-    [Required]
     public short AccountId { get; set; }
     [MaxLength(100)]
     public string? AccountName { get; set; }

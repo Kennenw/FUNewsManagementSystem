@@ -29,13 +29,18 @@ namespace FUNewsManagementSystem.Services
 
         public async Task DeleteAsync(short id)
         {
-            await _unitOfWork._categoryRepository.DeleteAsync(id);
-            await _unitOfWork.SaveChangesAsync();
+            var itemDelete = await _unitOfWork._categoryRepository.GetByIdAsync(id);
+            if(itemDelete != null)
+            {
+                itemDelete.IsActive = false;
+                await _unitOfWork._categoryRepository.UpdateAsync(itemDelete);
+                await _unitOfWork.SaveChangesAsync();
+            }
         }
 
         public IQueryable<Category> GetAllAsync()
         {
-            return _unitOfWork._categoryRepository.GetAll();
+            return _unitOfWork._categoryRepository.GetAll().Where(c => c.IsActive == true);
         }
 
         public Task<Category?> GetByIdAsync(short id)

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FUNewsManagementSystem.Reposirories.ViewModels
 {
-    public class SystemAccountViewModel
+    public class SystemAccountViewModels
     {
     }
 
