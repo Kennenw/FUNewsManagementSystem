@@ -9,7 +9,7 @@ namespace FUNewsManagementSystem.Services
     {
         IQueryable<NewsArticle> GetAllAsync();
         Task<NewsArticle> GetByIdAsync(string id);
-        Task AddAsync(CreateNewsArticleViewModels entity);
+        Task<NewsArticle> AddAsync(CreateNewsArticleViewModels entity);
         Task UpdateAsync(string id, UpdateNewsArticleViewModels entity);
         Task DeleteAsync(string id);
     }

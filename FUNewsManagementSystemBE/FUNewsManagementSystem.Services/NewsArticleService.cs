@@ -16,11 +16,15 @@ namespace FUNewsManagementSystem.Services
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
-        public async Task AddAsync(CreateNewsArticleViewModels entity)
+        public async Task<NewsArticle> AddAsync(CreateNewsArticleViewModels entity)
         {
             NewsArticle newsArticle = _mapper.Map<NewsArticle>(entity);
+            newsArticle.NewsArticleId = $"NA_{DateTime.Now:yyyyMMddHHmmss}";
+            newsArticle.UpdatedById = newsArticle.CreatedById;
+            newsArticle.ModifiedDate = DateTime.Now;
             await _unitOfWork._newsArticleRepository.AddAsync(newsArticle);
             await _unitOfWork.SaveChangesAsync();
+            return newsArticle;
         }
 
         public async Task DeleteAsync(string id)
