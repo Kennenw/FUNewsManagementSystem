@@ -2,6 +2,7 @@
 using FUNewsManagementSystem.Reposirories;
 using FUNewsManagementSystem.Reposirories.Models;
 using FUNewsManagementSystem.Reposirories.Repository;
+using FUNewsManagementSystem.Reposirories.Untils;
 using FUNewsManagementSystem.Reposirories.ViewModels;
 using FUNewsManagementSystem.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -46,7 +47,9 @@ namespace FUNewsManagementSystem.WebAPI
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ITagService, TagService>();
 
-            builder.Services.AddAutoMapper(typeof(Program));
+
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
+
 
             var odataBuilder = new ODataConventionModelBuilder();
             odataBuilder.EntitySet<SystemAccount>("SystemAccounts");

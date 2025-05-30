@@ -45,7 +45,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             await _service.AddAsync(newsArticle);
-            return Created(newsArticle);
+            return Ok(newsArticle);
         }
 
         [HttpPut("{id}")]
