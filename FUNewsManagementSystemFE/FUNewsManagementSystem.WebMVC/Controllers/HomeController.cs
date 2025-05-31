@@ -24,6 +24,63 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
             _httpClient.BaseAddress = new Uri("https://localhost:7069/odata/");
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> Details(string id)
+        {
+            try
+            {
+                var token = Request.Cookies["Token"];
+                if (string.IsNullOrEmpty(token))
+                {
+                    return RedirectToAction("Index", "Auth");
+                }
+
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var response = await _httpClient.GetAsync($"NewsArticles/{id}?$expand=Category,Tags,CreatedBy");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    TempData["Error"] = "Unable to load article. Please try again later.";
+                    return RedirectToAction("Index");
+                }
+
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var article = await response.Content.ReadFromJsonAsync<NewsDetailViewModel>(options);
+
+                if (article == null)
+                {
+                    TempData["Error"] = "Article not found.";
+                    return RedirectToAction("Index");
+                }
+
+                var viewModel = new NewsDetailViewModel
+                {
+                    NewsArticleId = article.NewsArticleId,
+                    NewsTitle = article.NewsTitle,
+                    Headline = article.Headline,
+                    NewsContent = article.NewsContent,
+                    NewsSource = article.NewsSource,
+                    CategoryId = article.CategoryId,
+                    Category = article.Category, 
+                    NewsStatus = article.NewsStatus,
+                    CreatedById = article.CreatedById,
+                    CreatedBy = article.CreatedBy,
+                    CreatedDate = article.CreatedDate,
+                    ModifiedDate = article.ModifiedDate,
+                    Tags = article.Tags ?? new List<TagsViewModels>()
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error loading article: {ex.Message}";
+                return RedirectToAction("Index");
+            }
+        }
+
+
         [Authorize(Policy = "Staff")]
         [HttpGet]
         public async Task<IActionResult> Edit(string id)

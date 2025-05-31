@@ -4,7 +4,7 @@
     ViewData["Title"] = "News Articles";
 }
 
-<!-- Enhanced Hero Section -->
+<!-- Hero Section -->
 <div class="hero-section mb-5">
     <div class="row align-items-center">
         <div class="col-lg-8">
@@ -26,10 +26,10 @@
     </div>
 </div>
 
-<!-- Enhanced Search and Filter Section -->
+<!-- Search and Filter Section -->
 <div class="card glass-effect mb-5 fade-in" style="animation-delay: 0.3s;">
     <div class="card-body p-4">
-        <form asp-action="Index" method="get">
+        <form asp-action="Index" method="get" id="searchForm">
             <div class="row g-3 align-items-end">
                 <div class="col-lg-6">
                     <label class="form-label fw-semibold">
@@ -41,8 +41,9 @@
                         </span>
                         <input type="text" name="searchQuery" value="@Model.SearchQuery"
                                class="form-control"
-                               placeholder="Search by title, content, or category..." />
-                        <button type="submit" class="btn btn-primary">
+                               placeholder="Search by title, content, or category..."
+                               autocomplete="off" />
+                        <button type="submit" class="btn btn-primary" id="searchBtn">
                             <i class="bi bi-search me-1"></i>Search
                         </button>
                     </div>
@@ -54,13 +55,13 @@
                     <div class="btn-group w-100" role="group">
                         <a asp-action="Index" asp-all-route-data="@(new Dictionary<string, string> {
                             { "searchQuery", Model.SearchQuery },
-                            { "sortBy", "Title" },
-                            { "sortOrder", Model.SortBy == "Title" && Model.SortOrder == "asc" ? "desc" : "asc" },
+                            { "sortBy", "NewsTitle" },
+                            { "sortOrder", Model.SortBy == "NewsTitle" && Model.SortOrder == "asc" ? "desc" : "asc" },
                             { "pageNumber", "1" },
                             { "pageSize", Model.PageSize.ToString() }
-                        })" class="btn btn-outline-primary @(Model.SortBy == "Title" ? "active" : "")">
+                        })" class="btn btn-outline-primary @(Model.SortBy == "NewsTitle" ? "active" : "")">
                             <i class="bi bi-sort-alpha-down me-1"></i>Title
-                            @(Model.SortBy == "Title" ? (Model.SortOrder == "asc" ? "↑" : "↓") : "")
+                            @(Model.SortBy == "NewsTitle" ? (Model.SortOrder == "asc" ? "↑" : "↓") : "")
                         </a>
                         <a asp-action="Index" asp-all-route-data="@(new Dictionary<string, string> {
                             { "searchQuery", Model.SearchQuery },
@@ -91,7 +92,14 @@
     </div>
 </div>
 
-<!-- Enhanced Articles Grid -->
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="text-center d-none">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<!-- Articles Grid -->
 @if (Model.Item.Any())
 {
     <div class="row g-4 mb-5">
@@ -109,7 +117,11 @@
                         </span>
                     </div>
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold text-primary mb-3">@article.NewsTitle</h5>
+                        <h5 class="card-title fw-bold text-primary mb-3">
+                            <a asp-action="Details" asp-route-id="@article.NewsArticleId"
+                               class="text-decoration-none"
+                               title="@article.Headline">@article.NewsTitle</a>
+                        </h5>
                         <p class="card-text text-muted mb-3 flex-grow-1">
                             @(article.Headline?.Length > 120 ? article.Headline.Substring(0, 120) + "..." : article.Headline)
                         </p>
@@ -130,9 +142,13 @@
                             <span><i class="bi bi-calendar3 me-1"></i>@article.CreatedDate?.ToString("MMM dd, yyyy")</span>
                             <span><i class="bi bi-eye me-1"></i>ID: @article.NewsArticleId</span>
                         </div>
-                        @if (User.HasClaim("Role", "1"))
-                        {
-                            <div class="d-flex gap-2 mt-auto">
+                        <div class="d-flex gap-2 mt-auto">
+                            <a asp-action="Details" asp-route-id="@article.NewsArticleId"
+                               class="btn btn-info btn-sm flex-fill">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                            @if (User.HasClaim("Role", "1"))
+                            {
                                 <a asp-action="Edit" asp-route-id="@article.NewsArticleId"
                                    class="btn btn-primary btn-sm flex-fill">
                                     <i class="bi bi-pencil me-1"></i>Edit
@@ -142,8 +158,8 @@
                                         data-bs-target="#deleteModal_@article.NewsArticleId">
                                     <i class="bi bi-trash me-1"></i>Delete
                                 </button>
-                            </div>
-                        }
+                            }
+                        </div>
                     </div>
                 </div>
                 @if (User.HasClaim("Role", "1"))
@@ -205,7 +221,7 @@ else
     </div>
 }
 
-<!-- Enhanced Pagination -->
+<!-- Pagination -->
 @if (Model.TotalPages > 1)
 {
     <nav aria-label="Page navigation" class="mt-5">
@@ -292,10 +308,10 @@ else
     </nav>
 }
 
-<!-- Enhanced Error Display -->
+<!-- Error Display -->
 @if (!string.IsNullOrEmpty(ViewBag.Error))
 {
-    <div class="alert alert-danger alert-dismissible fade show fade-in" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show fade-in mt-3" role="alert">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
         <strong>Error:</strong> @ViewBag.Error
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -305,29 +321,86 @@ else
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
+            // Hover effect for cards
             const cards = document.querySelectorAll('.card');
             cards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
+                card.addEventListener('mouseenter', function () {
                     this.style.transform = 'translateY(-10px) scale(1.03)';
                     this.style.transition = 'all 0.3s ease';
                 });
-                card.addEventListener('mouseleave', function() {
+                card.addEventListener('mouseleave', function () {
                     this.style.transform = 'translateY(0) scale(1)';
                 });
             });
 
+            // Auto-focus search input if empty
             const searchInput = document.querySelector('input[name="searchQuery"]');
             if (searchInput && !searchInput.value) {
                 searchInput.focus();
             }
 
-            const searchForm = document.querySelector('form');
-            searchForm.addEventListener('submit', function() {
-                const submitBtn = this.querySelector('button[type="submit"]');
-                submitBtn.classList.add('loading');
-                submitBtn.disabled = true;
+            // Show loading spinner on form submit
+            const searchForm = document.querySelector('#searchForm');
+            const searchBtn = document.querySelector('#searchBtn');
+            searchForm.addEventListener('submit', function () {
+                searchBtn.classList.add('disabled');
+                searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Searching...';
+                document.getElementById('loadingSpinner').classList.remove('d-none');
             });
+
+            // Auto-dismiss alerts
+            const alert = document.querySelector('.alert');
+            if (alert) {
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    alert.classList.add('fade');
+                }, 5000);
+            }
         });
     </script>
+    <style>
+        .hero-section {
+            padding: 2rem 0;
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, #007bff, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            background: linear-gradient(45deg, #007bff, #00d4ff);
+            color: white;
+        }
+    </style>
 }
