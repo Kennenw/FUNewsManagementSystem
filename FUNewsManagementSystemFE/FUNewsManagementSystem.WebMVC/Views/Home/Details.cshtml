@@ -1,0 +1,174 @@
+﻿@model NewsDetailViewModel
+
+@{
+    ViewData["Title"] = "Article Details";
+}
+
+<div class="hero-section mb-5">
+    <h1 class="display-4 gradient-text fade-in">
+        <i class="bi bi-newspaper me-3"></i>@Model.NewsTitle
+    </h1>
+    <p class="lead text-muted fade-in" style="animation-delay: 0.3s;">
+        @Model.Headline
+    </p>
+</div>
+
+<div class="card glass-effect mb-5 fade-in" style="animation-delay: 0.6s;">
+    <div class="card-body p-4">
+        <div class="row">
+            <div class="col-md-8">
+                <h4>Article Content</h4>
+                <div class="content mb-4">
+                    @Html.Raw(Model.NewsContent)
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h4>Details</h4>
+                <ul class="list-unstyled">
+                    <li><strong>Source:</strong> @Model.NewsSource</li>
+                    <li><strong>Category:</strong> @Model.Category?.CategoryName</li>
+                    <li><strong>Author:</strong> @Model.CreatedBy?.AccountName</li>
+                    <li><strong>Created Date:</strong> @Model.CreatedDate?.ToString("MMM dd, yyyy HH:mm")</li>
+                    <li><strong>Modified Date:</strong> @(Model.ModifiedDate?.ToString("MMM dd, yyyy HH:mm") ?? "Not modified")</li>
+                    <li><strong>Status:</strong> @(Model.NewsStatus == true ? "Published" : "Draft")</li>
+                    <li>
+                        <strong>Tags:</strong>
+                        @if (Model.Tags?.Any() ?? false)
+                        {
+                            <div class="mt-2">
+                                @foreach (var tag in Model.Tags)
+                                {
+                                    <span class="badge bg-light text-dark me-1 mb-1">@tag.TagName</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No tags</span>
+                        }
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    <a asp-action="Index" class="btn btn-secondary hover-lift">
+        <i class="bi bi-arrow-left me-1"></i>Back to List
+    </a>
+    @if (User.HasClaim("Role", "1"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.NewsArticleId" class="btn btn-primary hover-lift">
+            <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+        <button class="btn btn-outline-danger hover-lift"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteModal_@Model.NewsArticleId">
+            <i class="bi bi-trash me-1"></i>Delete
+        </button>
+
+        <!-- Delete Modal -->
+        <div class="modal fade" id="deleteModal_@Model.NewsArticleId" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Delete Article
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4 text-center">
+                        <i class="bi bi-trash text-danger mb-3" style="font-size: 2.5rem;"></i>
+                        <h6 class="fw-bold mb-2">Delete "@Model.NewsTitle"?</h6>
+                        <p class="text-muted small">This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i>Cancel
+                        </button>
+                        <form asp-action="Delete" method="post">
+                            <input type="hidden" name="id" value="@Model.NewsArticleId" />
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Error:</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@section Scripts {
+    <style>
+        .hero-section {
+            padding: 2rem 0;
+        }
+
+        .gradient-text {
+            background: linear-gradient(45deg, #007bff, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+        }
+
+        .content {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            background: linear-gradient(45deg, #007bff, #00d4ff);
+            color: white;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const alert = document.querySelector('.alert');
+            if (alert) {
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    alert.classList.add('fade');
+                }, 5000);
+            }
+        });
+    </script>
+}

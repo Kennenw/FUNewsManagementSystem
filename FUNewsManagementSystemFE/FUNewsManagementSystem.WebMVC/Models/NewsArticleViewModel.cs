@@ -3,6 +3,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FUNewsManagementSystem.WebMVC.Models
 {
+    public class NewsDetailViewModel
+    {
+        public string NewsArticleId { get; set; }
+        public string NewsTitle { get; set; }
+        public string Headline { get; set; }
+        public string NewsContent { get; set; }
+        public string NewsSource { get; set; }
+        public short? CategoryId { get; set; }
+        public CategoryViewModel Category { get; set; } // Thêm thuộc tính Category
+        public bool? NewsStatus { get; set; }
+        public short? CreatedById { get; set; }
+        public SystemAccountViewModel CreatedBy { get; set; } // Thêm thuộc tính CreatedBy
+        public DateTime? CreatedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
+        public List<TagsViewModels> Tags { get; set; }
+    }
+
     public class NewsArticleViewModel
     {
         public string NewsArticleId { get; set; } = null!;
