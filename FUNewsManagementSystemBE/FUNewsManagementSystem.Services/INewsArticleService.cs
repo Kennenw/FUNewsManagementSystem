@@ -12,5 +12,6 @@ namespace FUNewsManagementSystem.Services
         Task<NewsArticle> AddAsync(CreateNewsArticleViewModels entity);
         Task UpdateAsync(string id, UpdateNewsArticleViewModels entity);
         Task DeleteAsync(string id);
+        Task<List<NewsArticleHistoryViewModels>> GetNewsModify(short accountId);
     }
 }

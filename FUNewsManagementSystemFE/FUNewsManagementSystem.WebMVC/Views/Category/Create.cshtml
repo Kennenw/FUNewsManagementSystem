@@ -1,0 +1,38 @@
+﻿@model CreateCategoryViewModels
+
+@{
+    ViewData["Title"] = "Create Category";
+}
+
+<h1>Create Category</h1>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="CategoryName" class="form-label">Category Name</label>
+        <input asp-for="CategoryName" class="form-control" />
+        <span asp-validation-for="CategoryName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="CategoryDesciption" class="form-label">Description</label>
+        <textarea asp-for="CategoryDesciption" class="form-control"></textarea>
+        <span asp-validation-for="CategoryDesciption" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ParentCategoryId" class="form-label">Parent Category (optional)</label>
+        <select asp-for="ParentCategoryId" class="form-control" asp-items="@ViewBag.Categories">
+            <option value="">-- None --</option>
+        </select>
+        <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@if (!string.IsNullOrEmpty(ViewBag.Error))
+{
+    <div class="alert alert-danger mt-3">@ViewBag.Error</div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

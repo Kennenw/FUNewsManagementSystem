@@ -18,11 +18,14 @@ namespace FUNewsManagementSystem.Services
             _mapper = mapper;
             _adminAccount = adminAccount.Value;
         }
-        public async Task AddAsync(CreateSystemAccountViewModel entity)
+        public async Task<SystemAccount> AddAsync(CreateSystemAccountViewModel entity)
         {
             SystemAccount systemAccount = _mapper.Map<SystemAccount>(entity);
+            short maxId = (short)(_unitOfWork._systemAccountRepository.GetAll().Max(x => x.AccountId) + 1);
+            systemAccount.AccountId = maxId;
             await _unitOfWork._systemAccountRepository.AddAsync(systemAccount);
             await _unitOfWork.SaveChangesAsync();
+            return systemAccount;
         }
 
         public async Task DeleteAsync(short id)

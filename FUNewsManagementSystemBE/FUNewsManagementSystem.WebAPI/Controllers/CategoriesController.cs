@@ -61,8 +61,10 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         public async Task<IActionResult> Post([FromBody]CreateCategoryViewModels category)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            await _service.AddAsync(category);
-            return Created(category);
+            var item = await _service.AddAsync(category);
+            if (item == null)
+                return BadRequest("Unable to create category");
+            return Created(item);
         }
 
         // DELETE: api/Categories/5

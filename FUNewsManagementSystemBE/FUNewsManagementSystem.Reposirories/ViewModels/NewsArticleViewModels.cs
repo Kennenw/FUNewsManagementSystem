@@ -1,16 +1,9 @@
-﻿using FUNewsManagementSystem.Reposirories.Models;
-using System;
-using System.Collections.Generic;
+﻿
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FUNewsManagementSystem.Reposirories.ViewModels
 {
-    internal class NewsArticleViewModels
-    {
-    }
+
     public class UpdateNewsArticleViewModels
     {
         [MaxLength(400)]
@@ -28,7 +21,7 @@ namespace FUNewsManagementSystem.Reposirories.ViewModels
         public bool? NewsStatus { get; set; } = true;
 
         public short? UpdatedById { get; set; }
-
+        public List<int>? Tags { get; set; } = new List<int>();
         public DateTime? ModifiedDate { get; set; } = DateTime.Now;
     }
 
@@ -49,7 +42,20 @@ namespace FUNewsManagementSystem.Reposirories.ViewModels
         public short? CategoryId { get; set; }
 
         public bool? NewsStatus { get; set; } = true;
+        public List<int>? TagIds { get; set; } = new List<int>();
 
         public short? CreatedById { get; set; }
+    }
+
+    public class NewsArticleHistoryViewModels
+    {
+        public string? NewsArticleId { get; set; }
+        public string? NewsTitle { get; set; }
+        public string? Headline { get; set; }
+        public string? CategoryName { get; set; }
+        public string? AuthorName { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public List<string>? TagName { get; set; } = new List<string>();
+        public bool? NewsStatus { get; set; }
     }
 }

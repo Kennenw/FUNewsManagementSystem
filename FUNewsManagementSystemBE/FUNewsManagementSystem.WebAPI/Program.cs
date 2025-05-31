@@ -43,6 +43,7 @@ namespace FUNewsManagementSystem.WebAPI
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
             builder.Services.AddScoped<INewsArticleService, NewsArticleService>();
+            builder.Services.AddScoped<IReportService, ReportService>();
             builder.Services.AddScoped<ISystemAccountService, SystemAccountService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<ITagService, TagService>();
@@ -55,6 +56,7 @@ namespace FUNewsManagementSystem.WebAPI
             odataBuilder.EntitySet<SystemAccount>("SystemAccounts");
             odataBuilder.EntitySet<NewsArticle>("NewsArticles");
             odataBuilder.EntitySet<Category>("Categories");
+            odataBuilder.EntitySet<Tag>("Tags");
 
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>

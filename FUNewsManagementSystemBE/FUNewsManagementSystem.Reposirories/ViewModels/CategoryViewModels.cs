@@ -1,16 +1,12 @@
-﻿using FUNewsManagementSystem.Reposirories.Models;
-using System;
-using System.Collections.Generic;
+﻿
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FUNewsManagementSystem.Reposirories.ViewModels
 {
     internal class CategoryViewModels
     {
-
+        public short CategoryId { get; set; }
+        public string CategoryName { get; set; }
     }
 
     public class CreateCategoryViewModels
@@ -22,7 +18,7 @@ namespace FUNewsManagementSystem.Reposirories.ViewModels
         [MaxLength(250)]
         public string CategoryDesciption { get; set; } = null!;
 
-        public short? ParentCategoryId { get; set; }
+        public short? ParentCategoryId { get; set; } = null;
 
         public bool? IsActive { get; set; } = true;
     }
@@ -34,7 +30,7 @@ namespace FUNewsManagementSystem.Reposirories.ViewModels
         [MaxLength(250)]
         public string? CategoryDesciption { get; set; } = null!;
 
-        public short? ParentCategoryId { get; set; }
+        public short? ParentCategoryId { get; set; } = null;
 
         public bool? IsActive { get; set; }
     }

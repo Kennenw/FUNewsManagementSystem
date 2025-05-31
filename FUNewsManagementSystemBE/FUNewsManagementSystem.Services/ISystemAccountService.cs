@@ -9,7 +9,7 @@ namespace FUNewsManagementSystem.Services
     {
         IQueryable<SystemAccount> GetAllAsync();
         Task<SystemAccount> GetByIdAsync(short id);
-        Task AddAsync(CreateSystemAccountViewModel entity);
+        Task<SystemAccount> AddAsync(CreateSystemAccountViewModel entity);
         Task UpdateAsync(short id, UpdateSystemAccountViewModel entity);
         Task DeleteAsync(short id);
         Task<SystemAccount?> LoginAsync(LoginRequestViewModel model);

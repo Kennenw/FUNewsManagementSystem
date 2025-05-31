@@ -1,0 +1,62 @@
+﻿@model ArticleHistoryViewModel
+
+
+<h2>News Article History</h2>
+<form asp-action="History" method="post">
+    <div class="mb-3">
+        <label asp-for="AccountId" class="form-label">Account ID</label>
+        <input asp-for="AccountId" type="number" class="form-control" required min="1" />
+        <span asp-validation-for="AccountId" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">View History</button>
+</form>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger mt-4" role="alert">
+        @ViewBag.ErrorMessage
+    </div>
+}
+else if (Model.Articles.Any())
+{
+    <h3 class="mt-4">Article History for Account ID: @Model.AccountId</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Article ID</th>
+                <th>Title</th>
+                <th>Headline</th>
+                <th>Category</th>
+                <th>Author</th>
+                <th>Created Date</th>
+                <th>Tags</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var article in Model.Articles.OrderByDescending(a => a.CreatedDate))
+            {
+                <tr>
+                    <td>@(article.NewsArticleId ?? "N/A")</td>
+                    <td>@(article.NewsTitle ?? "N/A")</td>
+                    <td>@(article.Headline ?? "N/A")</td>
+                    <td>@(article.CategoryName ?? "N/A")</td>
+                    <td>@(article.AuthorName ?? "N/A")</td>
+                    <td>@(article.CreatedDate?.ToString("yyyy-MM-dd") ?? "N/A")</td>
+                    <td>@(article.TagName != null && article.TagName.Any() ? string.Join(", ", article.TagName) : "None")</td>
+                    <td>@(article.NewsStatus ? (article.NewsStatus ? "Active" : "Inactive") : "N/A")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (Model.AccountId > 0)
+{
+    <div class="alert alert-info mt-4" role="alert">
+        No articles found for Account ID: @Model.AccountId
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

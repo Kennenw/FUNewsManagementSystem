@@ -1,8 +1,11 @@
 ﻿using FUNewsManagementSystem.WebMVC.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Diagnostics;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Json;
@@ -10,6 +13,7 @@ using System.Web;
 
 namespace FUNewsManagementSystem.WebMVC.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly HttpClient _httpClient;
@@ -20,15 +24,16 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
             _httpClient.BaseAddress = new Uri("https://localhost:7069/odata/");
         }
 
-
+        [Authorize(Policy = "Staff")]
         [HttpGet]
         public async Task<IActionResult> Edit(string id)
         {
             var token = Request.Cookies["Token"];
-            if (string.IsNullOrEmpty(token)) return RedirectToAction("Index", "Auth");
+            if (string.IsNullOrEmpty(token)) 
+                return RedirectToAction("Index", "Auth");
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.GetAsync($"NewsArticles/{id}");
+            var response = await _httpClient.GetAsync($"NewsArticles/{id}?$expand=Category,Tags,CreatedBy");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -38,30 +43,54 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
             var article = await response.Content.ReadFromJsonAsync<UpdateNewsArticleViewModels>(
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
+            var viewModel = new UpdateNewsArticleViewModels
+            {
+                NewsArticleId = article.NewsArticleId,
+                NewsTitle = article.NewsTitle,
+                Headline = article.Headline,
+                NewsContent = article.NewsContent,
+                NewsSource = article.NewsSource,
+                CategoryId = article.CategoryId,
+                NewsStatus = article.NewsStatus,
+                UpdatedById = GetUserIdFromToken(token),
+                SelectedTagIds = article.Tags?.Select(t => t.TagId).ToList() ?? new List<int>(),
+                ModifiedDate = DateTime.UtcNow
+            };
             await LoadCategoriesAsync();
-            return View(article);
+            return View(viewModel);
         }
 
-
+        [Authorize(Policy = "Staff")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, UpdateNewsArticleViewModels model)
         {
             var token = Request.Cookies["Token"];
-            if (string.IsNullOrEmpty(token)) return RedirectToAction("Index", "Auth");
+            if (string.IsNullOrEmpty(token)) 
+                return RedirectToAction("Index", "Auth");
 
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid || id != model.NewsArticleId)
             {
                 await LoadCategoriesAsync();
                 return View(model);
             }
 
-            // Tự động gán UpdatedById và ModifiedDate
-            model.UpdatedById = GetUserIdFromToken(token); // Hoặc lấy từ token nếu bạn giải mã JWT
-            model.ModifiedDate = DateTime.Now;
+            model.UpdatedById = GetUserIdFromToken(token);
+            var payload = new
+            {
+                newsTitle = model.NewsTitle,
+                headline = model.Headline,
+                newsContent = model.NewsContent,
+                newsSource = model.NewsSource,
+                categoryId = model.CategoryId,
+                newsStatus = true,
+                updatedById = model.UpdatedById,
+                tags = model.SelectedTagIds,
+                modifiedDate = model.ModifiedDate ?? DateTime.UtcNow 
+            };
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.PutAsJsonAsync($"NewsArticles/{id}", model);
+            var response = await _httpClient.PutAsJsonAsync($"NewsArticles/{id}", payload);
 
             if (response.IsSuccessStatusCode)
             {
@@ -75,7 +104,7 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
 
 
-
+        [Authorize(Policy = "Staff")]
         [HttpPost]
         public async Task<IActionResult> Delete(string id)
         {
@@ -91,7 +120,7 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
 
 
-
+        [Authorize(Policy = "Staff")]
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -103,13 +132,16 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
             var viewModel = new CreateNewsArticleViewModels
             {
-                CreatedById = GetUserIdFromToken(token)
+                CreatedById = GetUserIdFromToken(token),
+                NewsStatus = true
             };
 
             return View(viewModel);
         }
 
+        [Authorize(Policy = "Staff")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateNewsArticleViewModels model)
         {
             var token = Request.Cookies["Token"];
@@ -117,16 +149,27 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
                 return RedirectToAction("Index", "Auth");
 
             model.CreatedById = GetUserIdFromToken(token);
-
             if (!ModelState.IsValid)
             {
                 await LoadCategoriesAsync();
                 return View(model);
             }
+            var payload = new
+            {
+                model.NewsTitle,
+                model.Headline,
+                CreatedDate = DateTime.Now,
+                model.NewsContent,
+                model.NewsSource,
+                model.CategoryId,
+                NewsStatus = true,
+                tagIds = model.SelectedTagIds,
+                model.CreatedById
+            };
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _httpClient.PostAsJsonAsync("NewsArticles", model);
+            var response = await _httpClient.PostAsJsonAsync("NewsArticles", payload);
 
             if (response.IsSuccessStatusCode)
             {
@@ -135,28 +178,36 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
             var error = await response.Content.ReadAsStringAsync();
             ViewBag.Error = $"Lỗi khi tạo bài viết: {error}";
-
-
-            //ViewBag.Error = "Lỗi khi tạo bài viết: " + errorMessage;
             await LoadCategoriesAsync();
             return View(model);
         }
 
         private async Task LoadCategoriesAsync()
         {
-            var response = await _httpClient.GetAsync("Categories");
-            var json = await response.Content.ReadAsStringAsync();
-            var doc = JsonDocument.Parse(json);
+            var token = Request.Cookies["Token"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
 
-            var categories = doc.RootElement.GetProperty("value")
-                .EnumerateArray()
-                .Select(c => new SelectListItem
-                {
-                    Value = c.GetProperty("CategoryId").GetInt16().ToString(),
-                    Text = c.GetProperty("CategoryName").GetString()
-                }).ToList();
+            var catResponse = await _httpClient.GetAsync("Categories?$filter=IsActive eq true");
+            var tagResponse = await _httpClient.GetAsync("Tags");
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            ViewBag.Categories = categories;
+            var categories = await catResponse.Content.ReadFromJsonAsync<ODataResponse<CategoryViewModel>>(options);
+            var tags = await tagResponse.Content.ReadFromJsonAsync<ODataResponse<TagsViewModels>>(options);
+
+            ViewBag.Categories = categories?.Value.Select(c => new SelectListItem
+            {
+                Value = c.CategoryId.ToString(),
+                Text = c.CategoryName
+            }).ToList() ?? new List<SelectListItem>();
+
+            ViewBag.Tags = tags?.Value.Select(t => new SelectListItem
+            {
+                Value = t.TagId.ToString(),
+                Text = t.TagName
+            }).ToList() ?? new List<SelectListItem>();
         }
 
         private short GetUserIdFromToken(string token)
@@ -183,8 +234,6 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
         }
 
 
-
-
         public async Task<IActionResult> Index(string searchQuery = "", string sortBy = "CreatedDate", string sortOrder = "desc", int pageNumber = 1, int pageSize = 3)
         {
             try
@@ -195,7 +244,7 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
                     return RedirectToAction("Index", "Auth");
                 }
 
-                var query = "NewsArticles?$count=true";
+                var query = "NewsArticles?$count=true&$expand=Category,Tags,CreatedBy";
                 if (!string.IsNullOrEmpty(searchQuery))
                 {
                     var encodedQuery = HttpUtility.UrlEncode(searchQuery);
@@ -219,7 +268,7 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
                 var response = await _httpClient.GetAsync(query);
                 var rawJson = await response.Content.ReadAsStringAsync();
-
+                Console.WriteLine($"Ds: {rawJson}");
                 if (!response.IsSuccessStatusCode)
                 {
                     ViewBag.Error = $"API request failed with status {response.StatusCode}: {rawJson}";
@@ -232,7 +281,23 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
                 var viewModel = new ListViewModel<NewsArticleViewModel>
                 {
-                    Item = articles.Value ?? new List<NewsArticleViewModel>(),
+                    Item = articles?.Value.Select(a => new NewsArticleViewModel
+                    {
+                        NewsArticleId = a.NewsArticleId,
+                        NewsTitle = a.NewsTitle,
+                        Headline = a.Headline,
+                        CreatedDate = a.CreatedDate,
+                        NewsContent = a.NewsContent,
+                        NewsSource = a.NewsSource,
+                        CategoryId = a.CategoryId,
+                        NewsStatus = a.NewsStatus,
+                        CreatedById = a.CreatedById,
+                        UpdatedById = a.UpdatedById,
+                        ModifiedDate = a.ModifiedDate,
+                        CategoryName = a.Category?.CategoryName,
+                        CreatedByName = a.CreatedBy?.AccountName,
+                        Tags = a.Tags ?? new List<TagsViewModels>()
+                    }).ToList() ?? new List<NewsArticleViewModel>(),
                     SearchQuery = searchQuery,
                     SortBy = sortBy,
                     SortOrder = sortOrder,
@@ -255,6 +320,67 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
                 ViewBag.Error = $"Không thể tải dữ liệu từ API. Lỗi {ex.Message}";
                 return View(new ListViewModel<NewsArticleViewModel>());
             }
+        }
+
+        [Authorize(Policy = "Staff")]
+        public IActionResult History()
+        {
+            return View(new ArticleHistoryViewModel());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> History(ArticleHistoryViewModel model)
+        {
+            if (!ModelState.IsValid || model.AccountId <= 0)
+            {
+                ModelState.AddModelError("AccountId", "Please enter a valid Account ID.");
+                return View(model);
+            }
+
+            try
+            {
+                var token = Request.Cookies["Token"];
+                if (string.IsNullOrEmpty(token))
+                {
+                    return RedirectToAction("Index", "Auth");
+                }
+
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var response = await _httpClient.GetAsync($"NewsArticles/history?accountId={model.AccountId}");
+                var rawJson = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ViewBag.Error = $"API request failed with status {response.StatusCode}: {rawJson}";
+                    return View(new ArticleHistoryViewModel());
+                }
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var articles = JsonSerializer.Deserialize<List<NewsArticleHistoryViewModels>>(rawJson, options);
+
+                model.Articles = articles?.Select(a => new NewsArticleHistoryViewModels
+                {
+                    NewsArticleId = a.NewsArticleId,
+                    NewsTitle = a.NewsTitle,
+                    Headline = a.Headline,
+                    CategoryName = a.CategoryName,
+                    AuthorName = a.AuthorName,
+                    CreatedDate = a.CreatedDate,
+                    TagName = a.TagName ?? new List<string>(),
+                    NewsStatus = a.NewsStatus
+                }).ToList() ?? new List<NewsArticleHistoryViewModels>();
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = $"JSON deserialization failed: {ex.Message}";
+            }
+
+            return View(model);
         }
 
 

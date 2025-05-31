@@ -10,7 +10,8 @@ namespace FUNewsManagementSystem.Reposirories.Untils
         {
             CreateMap<CreateNewsArticleViewModels, NewsArticle>();
 
-            CreateMap<UpdateNewsArticleViewModels, NewsArticle>();
+            CreateMap<UpdateNewsArticleViewModels, NewsArticle>()
+                    .ForMember(dest => dest.Tags, opt => opt.Ignore()); ;
 
             CreateMap<CreateCategoryViewModels, Category>();
 
@@ -19,6 +20,7 @@ namespace FUNewsManagementSystem.Reposirories.Untils
             CreateMap<UpdateSystemAccountViewModel, SystemAccount>();
 
             CreateMap<CreateSystemAccountViewModel, SystemAccount>();
+
         }
     }
 }

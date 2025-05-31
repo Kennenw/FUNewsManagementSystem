@@ -37,7 +37,8 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
 
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Email, account.AccountEmail),
+                    new Claim(ClaimTypes.Email, account.AccountEmail.ToString() ?? "admin@123.gmail.com"),
+                    new Claim("AccountName", account.AccountName ?? "Admin"),
                     new Claim("Role", account.AccountRole.ToString()),
                     new Claim("AccountId", account.AccountId.ToString()),
                 };

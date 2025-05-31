@@ -1,7 +1,6 @@
 ﻿
 using FUNewsManagementSystem.Reposirories.Models;
 using FUNewsManagementSystem.Reposirories.Repository;
-using Microsoft.EntityFrameworkCore;
 
 namespace FUNewsManagementSystem.Reposirories
 {

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.EntityFrameworkCore;
 
 namespace FUNewsManagementSystem.WebAPI.Controllers
 {
@@ -21,7 +22,7 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
 
         [EnableQuery]
         [HttpGet]
-        public ActionResult<IQueryable<NewsArticle>> Get()
+        public IActionResult Get()
         {
             var newsArticle = _service.GetAllAsync();
             return Ok(newsArticle);
@@ -37,6 +38,30 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
                 return Ok(newsArticle);
             }
             return NotFound();
+        }
+
+        [HttpGet("history")]
+        [Authorize(Policy = "Staff")]
+        public async Task<IActionResult> GetArticleHistory([FromQuery] short accountId)
+        {
+            if (accountId <= 0)
+            {
+                return BadRequest(new { message = "Invalid account ID." });
+            }
+            try
+            {
+                var articles = await _service.GetNewsModify(accountId);
+
+                if (!articles.Any())
+                {
+                    return NotFound(new { message = "No articles found for the specified account." });
+                }
+                return Ok(articles);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error retrieving article history: {ex.Message}" });
+            }
         }
 
         [HttpPost]

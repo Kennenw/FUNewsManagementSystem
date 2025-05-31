@@ -15,11 +15,18 @@ namespace FUNewsManagementSystem.Services
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
-        public async Task AddAsync(CreateCategoryViewModels entity)
+        public async Task<Category> AddAsync(CreateCategoryViewModels entity)
         {
+            var check = await _unitOfWork._categoryRepository.SingleOrDefaultAsync(c => c.CategoryName.Equals(entity.CategoryName));
+            if(check != null)
+            {
+                return null;
+            }
             Category category = _mapper.Map<Category>(entity);
+            category.IsActive = true;
             await _unitOfWork._categoryRepository.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
+            return category;
         }
 
         public async Task<bool> CheckCategoryAsync(short id)

@@ -50,8 +50,8 @@ namespace FUNewsManagementSystem.WebAPI.Controllers
         public async Task<IActionResult> Post([FromBody] CreateSystemAccountViewModel account)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            await _service.AddAsync(account);
-            return Created(account);
+            var item = await _service.AddAsync(account);
+            return Created(item);
         }
 
         [HttpPut("{id}")]

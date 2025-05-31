@@ -1,10 +1,9 @@
 ﻿using FUNewsManagementSystem.WebMVC.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Globalization;
-using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -12,18 +11,18 @@ using System.Web;
 
 namespace FUNewsManagementSystem.WebMVC.Controllers
 {
-    [Authorize(Policy = "Staff")]
-    public class CategoryController : Controller
+    [Authorize(Policy = "Admin")]
+    public class SystemAccountController : Controller
     {
         private readonly HttpClient _httpClient;
 
-        public CategoryController(HttpClient httpClient)
+        public SystemAccountController(HttpClient httpClient)
         {
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri("https://localhost:7069/odata/");
         }
 
-        public async Task<IActionResult> Index(string searchQuery = "", string sortBy = "CategoryId", string sortOrder = "asc", int pageNumber = 1, int pageSize = 3)
+        public async Task<IActionResult> Index(string searchQuery = "", string sortBy = "AccountId", string sortOrder = "asc", int pageNumber = 1, int pageSize = 3)
         {
             try
             {
@@ -35,21 +34,21 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                var query = "Categories?$count=true";
+                var query = "SystemAccounts?$count=true";
 
                 if (!string.IsNullOrEmpty(searchQuery))
                 {
                     var encodedQuery = HttpUtility.UrlEncode(searchQuery);
-                    query += $"&$filter=contains(tolower(CategoryName),'{encodedQuery.ToLower()}')";
+                    query += $"&$filter=contains(tolower(AccountName),'{encodedQuery.ToLower()}') or contains(tolower(AccountEmail),'{encodedQuery.ToLower()}')";
                 }
 
                 if (!string.IsNullOrEmpty(sortBy))
                 {
                     var validSortBy = sortBy switch
                     {
-                        "CategoryId" => "CategoryId",
-                        "CategoryName" => "CategoryName",
-                        _ => "CategoryId"
+                        "AccountId" => "AccountId",
+                        "AccountName" => "AccountName",
+                        _ => "AccountId"
                     };
                     var validSortOrder = sortOrder?.ToLower() == "asc" ? "asc" : "desc";
                     query += $"&$orderby={validSortBy} {validSortOrder}";
@@ -64,15 +63,15 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
                 if (!response.IsSuccessStatusCode)
                 {
                     ViewBag.Error = $"API request failed with status {response.StatusCode}: {rawJson}";
-                    return View(new ListViewModel<CategoryViewModel>());
+                    return View(new ListViewModel<SystemAccountViewModel>());
                 }
 
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var category = await response.Content.ReadFromJsonAsync<ODataResponse<CategoryViewModel>>(options);
+                var category = await response.Content.ReadFromJsonAsync<ODataResponse<SystemAccountViewModel>>(options);
 
-                var viewModel = new ListViewModel<CategoryViewModel>
+                var viewModel = new ListViewModel<SystemAccountViewModel>
                 {
-                    Item = category?.Value ?? new List<CategoryViewModel>(),
+                    Item = category?.Value ?? new List<SystemAccountViewModel>(),
                     SearchQuery = searchQuery,
                     SortBy = sortBy,
                     SortOrder = sortOrder,
@@ -81,7 +80,7 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
                     TotalRecords = category?.Count ?? 0
                 };
 
-                ViewBag.AllCategories = viewModel.Item ?? new List<CategoryViewModel>();
+                ViewBag.AllCategories = category?.Value ?? new List<SystemAccountViewModel>();
 
                 return View(viewModel);
             }
@@ -97,8 +96,9 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
             }
         }
 
+
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
             var token = Request.Cookies["Token"];
             if (string.IsNullOrEmpty(token))
@@ -106,14 +106,18 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
                 return RedirectToAction("Index", "Auth");
             }
 
-            await LoadCategoriesAsync();
-            return View(new CreateCategoryViewModels { IsActive = true });
-        }
+            ViewBag.Roles = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "3", Text = "Admin" },
+            new SelectListItem { Value = "2", Text = "Lecturer" },
+            new SelectListItem { Value = "1", Text = "Staff" }
+        };
 
-        // POST: Create a new category
+            return View(new CreateSystemAccountViewModel());
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateCategoryViewModels model)
+        public async Task<IActionResult> Create(CreateSystemAccountViewModel model)
         {
             var token = Request.Cookies["Token"];
             if (string.IsNullOrEmpty(token))
@@ -123,27 +127,35 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
             if (!ModelState.IsValid)
             {
-                await LoadCategoriesAsync();
+                ViewBag.Roles = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "3", Text = "Admin" },
+                new SelectListItem { Value = "2", Text = "Lecturer" },
+                new SelectListItem { Value = "1", Text = "Staff" }
+            };
                 return View(model);
             }
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            model.IsActive = true;
-            var response = await _httpClient.PostAsJsonAsync("Categories", model);
+            var response = await _httpClient.PostAsJsonAsync("SystemAccounts", model);
             var rawJson = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
-                ViewBag.Error = $"Lỗi khi tạo danh mục: {rawJson}";
-                await LoadCategoriesAsync();
+                ViewBag.Error = $"Lỗi khi tạo tài khoản: {rawJson}";
+                ViewBag.Roles = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "3", Text = "Admin" },
+                new SelectListItem { Value = "2", Text = "Lecturer" },
+                new SelectListItem { Value = "1", Text = "Staff" }
+            };
                 return View(model);
             }
 
             return RedirectToAction("Index");
         }
 
-        // GET: Show edit form for a category
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -155,40 +167,45 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _httpClient.GetAsync($"Categories/{id}");
+            var response = await _httpClient.GetAsync($"SystemAccounts/{id}");
             var rawJson = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
-                TempData["Error"] = $"Không thể tải danh mục: {rawJson}";
+                TempData["Error"] = $"Không thể tải tài khoản: {rawJson}";
                 return RedirectToAction("Index");
             }
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var category = await response.Content.ReadFromJsonAsync<CategoryViewModel>(options);
+            var account = await response.Content.ReadFromJsonAsync<SystemAccountViewModel>(options);
 
-            if (category == null)
+            if (account == null)
             {
-                TempData["Error"] = "Danh mục không tồn tại.";
+                TempData["Error"] = "Tài khoản không tồn tại.";
                 return RedirectToAction("Index");
             }
-            UpdateCategoryViewModels updateCategory = new UpdateCategoryViewModels()
+
+            ViewBag.Roles = new List<SelectListItem>
             {
-                CategoryId = category.CategoryId,
-                CategoryDesciption = category.CategoryDesciption,
-                CategoryName = category.CategoryName,
-                IsActive = category.IsActive,
-                ParentCategoryId = category.ParentCategoryId,
+                new SelectListItem { Value = "3", Text = "Admin", Selected = account.AccountRole == 3 },
+                new SelectListItem { Value = "2", Text = "Lecturer", Selected = account.AccountRole == 2 },
+                new SelectListItem { Value = "1", Text = "Staff", Selected = account.AccountRole == 1 }
+            };
+            UpdateSystemAccountViewModel model = new UpdateSystemAccountViewModel
+            {
+                AccountEmail = account.AccountEmail,
+                AccountName = account.AccountName,
+                AccountPassword = account.AccountPassword,
+                AccountRole = account.AccountRole
             };
 
-            await LoadCategoriesAsync();
-            return View(updateCategory);
+            return View(model);
         }
 
-        // POST: Update an existing category
+        // POST: Update an existing account
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, UpdateCategoryViewModels model)
+        public async Task<IActionResult> Edit(int id, UpdateSystemAccountViewModel model)
         {
             var token = Request.Cookies["Token"];
             if (string.IsNullOrEmpty(token))
@@ -198,26 +215,39 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
             if (!ModelState.IsValid)
             {
-                await LoadCategoriesAsync();
+                ViewBag.Roles = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "3", Text = "Admin" },
+                new SelectListItem { Value = "2", Text = "Lecturer" },
+                new SelectListItem { Value = "1", Text = "Staff" }
+            };
                 return View(model);
             }
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            model.IsActive = true;
-            var response = await _httpClient.PutAsJsonAsync($"Categories/{id}", model);
+
+            
+
+            var response = await _httpClient.PutAsJsonAsync($"SystemAccounts/{id}", model);
             var rawJson = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
                 ViewBag.Error = $"Cập nhật thất bại: {rawJson}";
-                await LoadCategoriesAsync();
+                ViewBag.Roles = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "3", Text = "Admin" },
+                new SelectListItem { Value = "2", Text = "Lecturer" },
+                new SelectListItem { Value = "1", Text = "Staff" }
+            };
                 return View(model);
             }
 
             return RedirectToAction("Index");
         }
 
-        // POST: Delete a category
+
+
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
@@ -228,7 +258,7 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
             }
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.DeleteAsync($"Categories/{id}");
+            var response = await _httpClient.DeleteAsync($"SystemAccounts/{id}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -238,37 +268,6 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
             return StatusCode((int)response.StatusCode);
         }
 
-        // Load categories for dropdown
-        private async Task LoadCategoriesAsync()
-        {
-            var token = Request.Cookies["Token"];
-            if (string.IsNullOrEmpty(token))
-            {
-                ViewBag.Categories = new List<SelectListItem>();
-                return;
-            }
-
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.GetAsync("Categories");
-            var json = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                ViewBag.Categories = new List<SelectListItem>();
-                return;
-            }
-
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var odataResponse = JsonSerializer.Deserialize<ODataResponse<CategoryViewModel>>(json, options);
-
-            var categories = odataResponse?.Value?.Select(c => new SelectListItem
-            {
-                Value = c.CategoryId.ToString(),
-                Text = c.CategoryName
-            }).ToList() ?? new List<SelectListItem>();
-
-            ViewBag.Categories = categories;
-        }
 
     }
 }
