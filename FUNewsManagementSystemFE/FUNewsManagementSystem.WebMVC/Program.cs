@@ -8,38 +8,41 @@ namespace FUNewsManagementSystem.WebMVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Cấu hình xác thực bằng Cookie
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                             .AddCookie(options =>
                             {
-                                options.LoginPath = "/Auth/Index"; // Chuyển hướng đến trang đăng nhập nếu chưa xác thực
-                                options.AccessDeniedPath = "/Auth/AccessDenied"; // Trang khi truy cập không có quyền
-                                options.ExpireTimeSpan = TimeSpan.FromDays(1); // Thời gian hết hạn của cookie xác thực
-                                options.SlidingExpiration = true; // Gia hạn cookie khi người dùng hoạt động
+                                options.LoginPath = "/Auth/Index";
+                                options.AccessDeniedPath = "/Auth/AccessDenied";
+                                options.ExpireTimeSpan = TimeSpan.FromDays(1);
+                                options.SlidingExpiration = true;
                             });
-            // Add services to the container.
+
+            // Cấu hình phân quyền
             builder.Services.AddAuthorization(options =>
             {
-                options.AddPolicy("Staff", policy =>
-                    policy.RequireClaim("Role", "1"));
+                options.AddPolicy("Staff", policy => policy.RequireClaim("Role", "1"));
+                options.AddPolicy("Lecturer", policy => policy.RequireClaim("Role", "2"));
+                options.AddPolicy("Admin", policy => policy.RequireClaim("Role", "3"));
+            });
 
-                options.AddPolicy("Lecturer", policy =>
-                    policy.RequireClaim("Role", "2"));
-
-                options.AddPolicy("Admin", policy =>
-                    policy.RequireClaim("Role", "3"));
+            // Thêm Session support
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
             });
 
             builder.Services.AddControllersWithViews();
-
             builder.Services.AddHttpClient();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // Configure the HTTP request pipeline
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -47,6 +50,9 @@ namespace FUNewsManagementSystem.WebMVC
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            // 👉 Thêm Session middleware vào đúng vị trí
+            app.UseSession();
 
             app.UseAuthentication();
             app.UseAuthorization();

@@ -2,34 +2,326 @@
 
 @{
     ViewData["Title"] = "Login";
+    Layout = "_Layout";
 }
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card mt-5">
-                    <div class="card-header text-center">
-                        <h2>Login to FUNewsManagementSystem</h2>
+<div class="login-wrapper">
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <!-- Left Side - Branding -->
+            <div class="col-lg-6 d-none d-lg-flex login-brand-section">
+                <div class="brand-content">
+                    <div class="brand-logo animate__animated animate__fadeInLeft">
+                        <i class="bi bi-newspaper display-1 text-white mb-4"></i>
+                        <h1 class="text-white fw-bold mb-3">FU News Hub</h1>
+                        <p class="text-white-50 fs-5 mb-4">
+                            Your trusted source for campus news and updates
+                        </p>
                     </div>
-                    <div class="card-body">
-                        <form asp-action="Index" method="post">
-                            <div class="mb-3">
-                                <label asp-for="Email" class="form-label">Email</label>
-                                <input asp-for="Email" class="form-control" />
-                                <span asp-validation-for="Email" class="text-danger"></span>
-                            </div>
-                            <div class="mb-3">
-                                <label asp-for="Password" class="form-label">Password</label>
-                                <input asp-for="Password" class="form-control" />
-                                <span asp-validation-for="Password" class="text-danger"></span>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Login</button>
-                        </form>
+                    
+                    <div class="features-list animate__animated animate__fadeInLeft animate__delay-1s">
+                        <div class="feature-item mb-3">
+                            <i class="bi bi-check-circle-fill text-success me-3"></i>
+                            <span class="text-white">Real-time news management</span>
+                        </div>
+                        <div class="feature-item mb-3">
+                            <i class="bi bi-check-circle-fill text-success me-3"></i>
+                            <span class="text-white">Multi-role access control</span>
+                        </div>
+                        <div class="feature-item mb-3">
+                            <i class="bi bi-check-circle-fill text-success me-3"></i>
+                            <span class="text-white">Advanced reporting system</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Login Form -->
+            <div class="col-lg-6 d-flex align-items-center justify-content-center login-form-section">
+                <div class="login-form-container animate__animated animate__fadeInRight">
+                    <!-- Mobile Logo -->
+                    <div class="text-center d-lg-none mb-4">
+                        <i class="bi bi-newspaper display-4 gradient-text"></i>
+                        <h2 class="gradient-text fw-bold">FU News Hub</h2>
+                    </div>
+
+                    <div class="card glass-effect border-0 shadow-xl">
+                        <div class="card-header text-center py-4 border-0">
+                            <h3 class="mb-2 text-white fw-bold">
+                                <i class="bi bi-person-circle me-2"></i>Welcome Back
+                            </h3>
+                            <p class="text-white-50 mb-0">Sign in to your account to continue</p>
+                        </div>
+                        
+                        <div class="card-body p-5">
+                            <form asp-action="Index" method="post" id="loginForm" novalidate>
+                                <div class="mb-4">
+                                    <div class="form-floating">
+                                        <input asp-for="Email" type="email" class="form-control" 
+                                               id="floatingEmail" placeholder="name@example.com" required>
+                                        <label for="floatingEmail">
+                                            <i class="bi bi-envelope me-2"></i>Email Address
+                                        </label>
+                                    </div>
+                                    <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="form-floating position-relative">
+                                        <input asp-for="Password" type="password" class="form-control" 
+                                               id="floatingPassword" placeholder="Password" required>
+                                        <label for="floatingPassword">
+                                            <i class="bi bi-lock me-2"></i>Password
+                                        </label>
+                                        <button type="button" class="btn btn-outline-secondary password-toggle" 
+                                                onclick="togglePassword()">
+                                            <i class="bi bi-eye" id="passwordIcon"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                                        <label class="form-check-label text-muted" for="rememberMe">
+                                            Remember me on this device
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-lg w-100 hover-lift mb-3">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                                    Sign In
+                                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="loginSpinner"></span>
+                                </button>
+
+                                <div class="text-center">
+                                    <a href="#" class="text-decoration-none">
+                                        <i class="bi bi-question-circle me-1"></i>
+                                        Forgot your password?
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="card-footer text-center py-3 border-0 bg-transparent">
+                            <small class="text-muted">
+                                © 2025 FU News Management System. All rights reserved.
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Help Text -->
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Need help? Contact your system administrator
+                        </small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
+<style>
+    .login-wrapper {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+    }
 
-    <script asp-validation-for="LoginViewModel"></script>
+    .login-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="60" r="1" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .login-brand-section {
+        background: linear-gradient(45deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1));
+        position: relative;
+    }
+
+    .brand-content {
+        padding: 3rem;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .login-form-section {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        position: relative;
+    }
+
+    .login-form-container {
+        width: 100%;
+        max-width: 450px;
+        padding: 2rem;
+    }
+
+    .card.glass-effect {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .card-header {
+        background: linear-gradient(45deg, rgba(59, 130, 246, 0.8), rgba(139, 92, 246, 0.8));
+        backdrop-filter: blur(10px);
+    }
+
+    .form-floating > .form-control {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: #1e293b;
+    }
+
+    .form-floating > .form-control:focus {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-floating > label {
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label {
+        color: #3b82f6;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #64748b;
+        z-index: 5;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+        border: none;
+        font-weight: 600;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: all 0.6s;
+    }
+
+    .btn-primary:hover::before {
+        left: 100%;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        font-size: 1.1rem;
+    }
+
+    .form-check-input:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .gradient-text {
+        background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+        // Enhanced toast notification
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container') || createToastContainer();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0 animate__animated animate__fadeInRight`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-${getToastIcon(type)} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, { delay: 4000 });
+            bsToast.show();
+
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        function getToastIcon(type) {
+            const icons = {
+                'success': 'check-circle-fill',
+                'danger': 'exclamation-triangle-fill',
+                'warning': 'exclamation-triangle-fill',
+                'info': 'info-circle-fill'
+            };
+            return icons[type] || 'info-circle-fill';
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        // Auto-focus on first input
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('floatingEmail').focus();
+        });
+
+        // Enter key navigation
+        document.getElementById('floatingEmail').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('floatingPassword').focus();
+            }
+        });
+
+        // Form field animations
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+    </script>
+}

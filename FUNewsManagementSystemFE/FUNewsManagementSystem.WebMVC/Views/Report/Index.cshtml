@@ -1,77 +1,442 @@
 ﻿@model ReportViewModel
-<h2>News Report</h2>
-<form asp-action="Index" method="post" id="reportForm">
-    <div class="mb-3">
-        <label class="form-label">Start Date</label>
-        <input asp-for="StartDate" type="date" class="form-control" required
-               min="@DateTime.Today.AddYears(-10).ToString("yyyy-MM-dd")"
-               max="@DateTime.Today.ToString("yyyy-MM-dd")" />
-        <span asp-validation-for="StartDate" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label class="form-label">End Date (optional, defaults to today)</label>
-        <input asp-for="EndDate" type="date" class="form-control"
-               min="@DateTime.Today.AddYears(-10).ToString("yyyy-MM-dd")"
-               max="@DateTime.Today.ToString("yyyy-MM-dd")" />
-        <span asp-validation-for="EndDate" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-primary">Generate Report</button>
-</form>
 
-@if (Model.NewsItems.Any())
-{
-    <h3 class="mt-4">Report from @Model.StartDate.ToString("yyyy-MM-dd") to @Model.EndDate.ToString("yyyy-MM-dd")</h3>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Author</th>
-                <th>Created Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.NewsItems.OrderByDescending(x => x.CreatedDate))
-            {
-                <tr>
-                    <td>@item.Title</td>
-                    <td>@item.CategoryName</td>
-                    <td>@item.AuthorName</td>
-                    <td>@item.CreatedDate</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+@{
+    ViewData["Title"] = "News Report";
 }
+
+<div class="container mt-4 fade-in">
+    <!-- Enhanced Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="gradient-text mb-3">
+                    <i class="bi bi-graph-up-arrow me-3"></i>News Analytics Dashboard
+                </h1>
+                <p class="lead text-muted mb-0">Generate comprehensive reports and analyze news trends</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Form Section -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="card glass-effect border-0 shadow-lg">
+                <div class="card-header text-center py-4">
+                    <h4 class="mb-0 text-white">
+                        <i class="bi bi-calendar-range me-2"></i>Report Configuration
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Index" method="post" id="reportForm">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="StartDate" type="date" class="form-control"
+                                           id="floatingStartDate" required
+                                           min="@DateTime.Today.AddYears(-10).ToString("yyyy-MM-dd")"
+                                           max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                    <label for="floatingStartDate">
+                                        <i class="bi bi-calendar-event me-2"></i>Start Date
+                                    </label>
+                                    <span asp-validation-for="StartDate" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="EndDate" type="date" class="form-control"
+                                           id="floatingEndDate"
+                                           min="@DateTime.Today.AddYears(-10).ToString("yyyy-MM-dd")"
+                                           max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                    <label for="floatingEndDate">
+                                        <i class="bi bi-calendar-check me-2"></i>End Date (Optional)
+                                    </label>
+                                    <span asp-validation-for="EndDate" class="text-danger small"></span>
+                                </div>
+                                <small class="text-muted mt-1 d-block">
+                                    <i class="bi bi-info-circle me-1"></i>Defaults to today if not specified
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 hover-lift">
+                                <i class="bi bi-play-fill me-2"></i>Generate Report
+                                <span class="spinner-border spinner-border-sm ms-2 d-none" id="loadingSpinner"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    @if (Model.NewsItems.Any())
+    {
+        <!-- Report Summary Card -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card glass-effect border-0 shadow-lg animate__animated animate__fadeInUp">
+                    <div class="card-body p-4">
+                        <div class="row text-center">
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="stat-item">
+                                    <div class="stat-number gradient-text">@Model.NewsItems.Count()</div>
+                                    <div class="stat-label">Total Articles</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="stat-item">
+                                    <div class="stat-number text-success">@Model.NewsItems.Select(x => x.CategoryName).Distinct().Count()</div>
+                                    <div class="stat-label">Categories</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="stat-item">
+                                    <div class="stat-number text-info">@Model.NewsItems.Select(x => x.AuthorName).Distinct().Count()</div>
+                                    <div class="stat-label">Authors</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="stat-item">
+                                    <div class="stat-number text-warning">@((Model.EndDate - Model.StartDate).Days + 1)</div>
+                                    <div class="stat-label">Days Covered</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="bi bi-file-earmark-text me-2"></i>
+                        Report: @Model.StartDate.ToString("MMM dd, yyyy") to @Model.EndDate.ToString("MMM dd, yyyy")
+                    </h3>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-primary btn-sm" onclick="exportToCSV()">
+                            <i class="bi bi-download me-1"></i>Export CSV
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="printReport()">
+                            <i class="bi bi-printer me-1"></i>Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg animate__animated animate__fadeInUp">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="reportTable">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th scope="col" class="sortable" data-sort="title">
+                                            <i class="bi bi-card-text me-2"></i>Title
+                                            <i class="bi bi-arrow-down-up float-end"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-sort="category">
+                                            <i class="bi bi-tags me-2"></i>Category
+                                            <i class="bi bi-arrow-down-up float-end"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-sort="author">
+                                            <i class="bi bi-person me-2"></i>Author
+                                            <i class="bi bi-arrow-down-up float-end"></i>
+                                        </th>
+                                        <th scope="col" class="sortable" data-sort="date">
+                                            <i class="bi bi-calendar me-2"></i>Created Date
+                                            <i class="bi bi-arrow-down-up float-end"></i>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.NewsItems.OrderByDescending(x => x.CreatedDate))
+                                    {
+                                        <tr class="table-row-hover">
+                                            <td class="fw-medium">
+                                                <div class="text-truncate" style="max-width: 300px;" title="@item.Title">
+                                                    @item.Title
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary rounded-pill">
+                                                    @item.CategoryName
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-placeholder me-2">
+                                                        @item.AuthorName?.Substring(0, 1).ToUpper()
+                                                    </div>
+                                                    @item.AuthorName
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock me-1"></i>
+                                                    @item.CreatedDate?.ToString("MMM dd, yyyy")
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Model.StartDate != default(DateTime))
+    {
+        <!-- No Results Card -->
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-lg animate__animated animate__fadeInUp">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="bi bi-search display-1 text-muted"></i>
+                        </div>
+                        <h4 class="text-muted mb-3">No Articles Found</h4>
+                        <p class="text-muted mb-4">
+                            No news items were found for the selected date range.<br>
+                            Try adjusting your search criteria.
+                        </p>
+                        <button class="btn btn-outline-primary" onclick="resetForm()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Try Different Dates
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Custom Styles -->
+<style>
+    .stat-item {
+        padding: 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
+        }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .avatar-placeholder {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .table-row-hover {
+        transition: all 0.3s ease;
+    }
+
+        .table-row-hover:hover {
+            background-color: rgba(59, 130, 246, 0.05) !important;
+            transform: scale(1.005);
+        }
+
+    .sortable {
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.3s ease;
+    }
+
+        .sortable:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label {
+        color: #3b82f6;
+    }
+</style>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Form validation and loading states
         document.getElementById('reportForm').addEventListener('submit', function (e) {
-            const startDate = new Date(document.getElementById('StartDate').value);
-            const endDateInput = document.getElementById('EndDate');
+            const startDate = new Date(document.getElementById('floatingStartDate').value);
+            const endDateInput = document.getElementById('floatingEndDate');
             const endDate = endDateInput.value ? new Date(endDateInput.value) : new Date();
             const today = new Date('@DateTime.Today.ToString("yyyy-MM-dd")');
             const minDate = new Date('@DateTime.Today.AddYears(-10).ToString("yyyy-MM-dd")');
 
             if (startDate < minDate) {
                 e.preventDefault();
-                alert('Start Date cannot be earlier than @DateTime.Today.AddYears(-10).ToString("yyyy-MM-dd").');
+                showAlert('Start Date cannot be earlier than @DateTime.Today.AddYears(-10).ToString("yyyy-MM-dd").', 'danger');
                 return;
             }
 
             if (startDate > endDate) {
                 e.preventDefault();
-                alert('Start Date must be before or equal to End Date.');
+                showAlert('Start Date must be before or equal to End Date.', 'danger');
                 return;
             }
 
             if (endDate > today) {
                 e.preventDefault();
-                alert('End Date cannot be later than today (@DateTime.Today.ToString("yyyy-MM-dd")).');
+                showAlert('End Date cannot be later than today (@DateTime.Today.ToString("yyyy-MM-dd")).', 'danger');
                 endDateInput.value = '@DateTime.Today.ToString("yyyy-MM-dd")';
                 return;
             }
+
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const spinner = document.getElementById('loadingSpinner');
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+        });
+
+        // Table sorting functionality
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', function() {
+                const table = document.getElementById('reportTable');
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const column = this.cellIndex;
+                const isAscending = this.classList.contains('asc');
+
+                // Clear all sort indicators
+                document.querySelectorAll('.sortable').forEach(h => {
+                    h.classList.remove('asc', 'desc');
+                });
+
+                // Add sort indicator
+                this.classList.add(isAscending ? 'desc' : 'asc');
+
+                rows.sort((a, b) => {
+                    const aText = a.cells[column].textContent.trim();
+                    const bText = b.cells[column].textContent.trim();
+
+                    if (column === 3) { // Date column
+                        const aDate = new Date(aText);
+                        const bDate = new Date(bText);
+                        return isAscending ? bDate - aDate : aDate - bDate;
+                    }
+
+                    return isAscending ? bText.localeCompare(aText) : aText.localeCompare(bText);
+                });
+
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+
+        // Export to CSV functionality
+        function exportToCSV() {
+            const table = document.getElementById('reportTable');
+            const rows = table.querySelectorAll('tr');
+            let csv = [];
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = [];
+                const cols = rows[i].querySelectorAll('td, th');
+
+                for (let j = 0; j < cols.length; j++) {
+                    let text = cols[j].textContent.trim();
+                    // Clean up text for CSV
+                    text = text.replace(/"/g, '""');
+                    row.push('"' + text + '"');
+                }
+                csv.push(row.join(','));
+            }
+
+            const csvContent = csv.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'news-report-' + new Date().toISOString().slice(0, 10) + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            showAlert('Report exported successfully!', 'success');
+        }
+
+        // Print functionality
+        function printReport() {
+            window.print();
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('reportForm').reset();
+        }
+
+        // Show alerts
+        function showAlert(message, type) {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show animate__animated animate__fadeInDown" role="alert">
+                    <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            const container = document.querySelector('.container');
+            container.insertAdjacentHTML('afterbegin', alertHtml);
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const alert = container.querySelector('.alert');
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
+        }
+
+        // Auto-fill end date when start date changes
+        document.getElementById('floatingStartDate').addEventListener('change', function() {
+            const endDateInput = document.getElementById('floatingEndDate');
+            if (!endDateInput.value) {
+                endDateInput.value = '@DateTime.Today.ToString("yyyy-MM-dd")';
+            }
+        });
+
+        // Add animation to table rows on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('#reportTable tbody tr');
+            rows.forEach((row, index) => {
+                setTimeout(() => {
+                    row.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 50);
+            });
         });
     </script>
 }

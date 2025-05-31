@@ -5,58 +5,540 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Edit News Article</h2>
+<div class="container mt-4 fade-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Hero Section -->
+            <div class="text-center mb-5">
+                <h1 class="gradient-text display-4 fw-bold">
+                    <i class="bi bi-pencil-square me-3"></i>Edit Article
+                </h1>
+                <p class="lead text-muted">Perfect your story</p>
+            </div>
 
-@if (!string.IsNullOrEmpty(ViewBag.Error))
-{
-    <div class="alert alert-danger">@ViewBag.Error</div>
-}
+            <!-- Article Info Card -->
+            <div class="card glass-effect hover-lift shadow-lg border-0 mb-4">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="card-title mb-2">
+                                <i class="bi bi-file-text-fill text-primary me-2"></i>
+                                Editing: @(Model?.NewsTitle ?? "Article")
+                            </h5>
+                            <p class="card-text text-muted mb-0">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                Last modified: @DateTime.Now.ToString("MMM dd, yyyy")
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <button type="button" class="btn btn-primary btn-lg px-4 py-3"
+                                    data-bs-toggle="modal" data-bs-target="#editNewsArticleModal">
+                                <i class="bi bi-pencil-square me-2"></i>
+                                Edit Article
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<form asp-action="Edit" method="post">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input type="hidden" asp-for="NewsArticleId" />
-    <div class="mb-3">
-        <label asp-for="NewsTitle" class="form-label">Title</label>
-        <input asp-for="NewsTitle" class="form-control" />
-        <span asp-validation-for="NewsTitle" class="text-danger"></span>
+            <!-- Quick Stats -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-3">
+                    <div class="card glass-effect text-center border-0 h-100">
+                        <div class="card-body p-3">
+                            <i class="bi bi-eye-fill display-6 text-info mb-2"></i>
+                            <h6 class="card-title">Status</h6>
+                            <span class="badge @(Model?.NewsStatus == true ? "bg-success" : "bg-secondary") fs-6">
+                                @(Model?.NewsStatus == true ? "Published" : "Draft")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card glass-effect text-center border-0 h-100">
+                        <div class="card-body p-3">
+                            <i class="bi bi-folder-fill display-6 text-warning mb-2"></i>
+                            <h6 class="card-title">Category</h6>
+                            <p class="card-text small mb-0">Content Classification</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card glass-effect text-center border-0 h-100">
+                        <div class="card-body p-3">
+                            <i class="bi bi-tags-fill display-6 text-success mb-2"></i>
+                            <h6 class="card-title">Tags</h6>
+                            <p class="card-text small mb-0">Smart Labeling</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card glass-effect text-center border-0 h-100">
+                        <div class="card-body p-3">
+                            <i class="bi bi-shield-check-fill display-6 text-primary mb-2"></i>
+                            <h6 class="card-title">Version</h6>
+                            <p class="card-text small mb-0">Auto-saved</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-        <label asp-for="Headline" class="form-label">Headline</label>
-        <input asp-for="Headline" class="form-control" />
-        <span asp-validation-for="Headline" class="text-danger"></span>
+</div>
+
+<!-- Enhanced Edit Modal -->
+<div class="modal fade" id="editNewsArticleModal" tabindex="-1" aria-labelledby="editNewsArticleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-xl">
+            <div class="modal-header bg-gradient text-white border-0">
+                <h5 class="modal-title fw-bold" id="editNewsArticleModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i>Edit News Article
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                @if (!string.IsNullOrEmpty(ViewBag.Error))
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        @ViewBag.Error
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <form asp-action="Edit" method="post" id="editForm" class="needs-validation" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-warning"></div>
+                    <input type="hidden" asp-for="NewsArticleId" />
+
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-lg-8">
+                            <div class="card glass-effect border-0 mb-4">
+                                <div class="card-header bg-transparent border-0">
+                                    <h6 class="mb-0 text-primary fw-bold">
+                                        <i class="bi bi-file-text me-2"></i>Article Content
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-4">
+                                        <label asp-for="NewsTitle" class="form-label fw-semibold">
+                                            <i class="bi bi-type me-1"></i>Title *
+                                        </label>
+                                        <input asp-for="NewsTitle" class="form-control form-control-lg"
+                                               placeholder="Enter an engaging title..." required />
+                                        <span asp-validation-for="NewsTitle" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label asp-for="Headline" class="form-label fw-semibold">
+                                            <i class="bi bi-chat-quote me-1"></i>Headline *
+                                        </label>
+                                        <input asp-for="Headline" class="form-control"
+                                               placeholder="Write a compelling headline..." required />
+                                        <span asp-validation-for="Headline" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label asp-for="NewsContent" class="form-label fw-semibold">
+                                            <i class="bi bi-card-text me-1"></i>Content *
+                                        </label>
+                                        <textarea asp-for="NewsContent" class="form-control" rows="8"
+                                                  placeholder="Write your article content here..." required></textarea>
+                                        <span asp-validation-for="NewsContent" class="text-danger small"></span>
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Use clear, engaging language to tell your story
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="NewsSource" class="form-label fw-semibold">
+                                            <i class="bi bi-link-45deg me-1"></i>Source
+                                        </label>
+                                        <input asp-for="NewsSource" class="form-control"
+                                               placeholder="Source URL or reference..." />
+                                        <span asp-validation-for="NewsSource" class="text-danger small"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-lg-4">
+                            <div class="card glass-effect border-0 mb-4">
+                                <div class="card-header bg-transparent border-0">
+                                    <h6 class="mb-0 text-primary fw-bold">
+                                        <i class="bi bi-gear me-2"></i>Article Settings
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-4">
+                                        <label asp-for="CategoryId" class="form-label fw-semibold">
+                                            <i class="bi bi-folder me-1"></i>Category *
+                                        </label>
+                                        <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories" required>
+                                            <option value="">Choose category...</option>
+                                        </select>
+                                        <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label asp-for="SelectedTagIds" class="form-label fw-semibold">
+                                            <i class="bi bi-tags me-1"></i>Tags
+                                        </label>
+                                        <select asp-for="SelectedTagIds" multiple class="form-select"
+                                                asp-items="ViewBag.Tags" size="4"></select>
+                                        <span asp-validation-for="SelectedTagIds" class="text-danger small"></span>
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Hold Ctrl/Cmd to select multiple tags
+                                        </div>
+                                    </div>
+
+                                    <div class="card bg-light border-0">
+                                        <div class="card-body p-3">
+                                            <div class="form-check form-switch">
+                                                <input asp-for="NewsStatus" class="form-check-input" type="checkbox"
+                                                       id="editPublishSwitch" checked="@Model.NewsStatus" />
+                                                <label asp-for="NewsStatus" class="form-check-label fw-semibold" for="editPublishSwitch">
+                                                    <i class="bi bi-broadcast me-1"></i>
+                                                    <span class="publish-text">@(Model?.NewsStatus == true ? "Published" : "Draft")</span>
+                                                </label>
+                                            </div>
+                                            <small class="text-muted d-block mt-2">
+                                                <span class="status-help">
+                                                    @(Model?.NewsStatus == true ? "Article is visible to readers" : "Article is saved as draft")
+                                                </span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Revision History -->
+                            <div class="card glass-effect border-0 mb-4">
+                                <div class="card-header bg-transparent border-0">
+                                    <h6 class="mb-0 text-warning fw-bold">
+                                        <i class="bi bi-clock-history me-2"></i>Revision Info
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-calendar3 text-muted me-2"></i>
+                                        <small class="text-muted">Last saved: Just now</small>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-person text-muted me-2"></i>
+                                        <small class="text-muted">Modified by: @User.Identity.Name</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Card -->
+                            <div class="card glass-effect border-0">
+                                <div class="card-header bg-transparent border-0">
+                                    <h6 class="mb-0 text-success fw-bold">
+                                        <i class="bi bi-eye me-2"></i>Live Preview
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="preview-content">
+                                        <h6 class="preview-title">@(Model?.NewsTitle ?? "Title will appear here...")</h6>
+                                        <p class="preview-headline small text-muted">@(Model?.Headline ?? "Headline preview...")</p>
+                                        <div class="mt-3">
+                                            <span class="badge bg-secondary me-1">Category</span>
+                                            <span class="badge bg-light text-dark">Tags</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light border-0 p-4">
+                <button type="button" class="btn btn-light btn-lg me-3" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-lg me-2" id="saveDraftBtn">
+                    <i class="bi bi-file-earmark me-2"></i>Save Draft
+                </button>
+                <button type="submit" form="editForm" class="btn btn-primary btn-lg px-4">
+                    <i class="bi bi-check-circle me-2"></i>Save Changes
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-        <label asp-for="NewsContent" class="form-label">Content</label>
-        <textarea asp-for="NewsContent" class="form-control" rows="5"></textarea>
-        <span asp-validation-for="NewsContent" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="NewsSource" class="form-label">Source</label>
-        <input asp-for="NewsSource" class="form-control" />
-        <span asp-validation-for="NewsSource" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="CategoryId" class="form-label">Category</label>
-        <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories">
-            <option value="">-- Select Category --</option>
-        </select>
-        <span asp-validation-for="CategoryId" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="SelectedTagIds" class="form-label">Tags</label>
-        <select asp-for="SelectedTagIds" multiple class="form-select" asp-items="ViewBag.Tags"></select>
-        <span asp-validation-for="SelectedTagIds" class="text-danger"></span>
-    </div>
-    <div class="form-check mb-3">
-        <input asp-for="NewsStatus" class="form-check-input" type="checkbox" checked="@Model.NewsStatus" />
-        <label asp-for="NewsStatus" class="form-check-label">Published</label>
-    </div>
-    <div class="mb-3">
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-    </div>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Live preview and interaction functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const titleInput = document.querySelector('input[name="NewsTitle"]');
+            const headlineInput = document.querySelector('input[name="Headline"]');
+            const contentTextarea = document.querySelector('textarea[name="NewsContent"]');
+            const publishSwitch = document.getElementById('editPublishSwitch');
+            const categorySelect = document.querySelector('select[name="CategoryId"]');
+            const tagsSelect = document.querySelector('select[name="SelectedTagIds"]');
+
+            const previewTitle = document.querySelector('.preview-title');
+            const previewHeadline = document.querySelector('.preview-headline');
+            const publishText = document.querySelector('.publish-text');
+            const statusHelp = document.querySelector('.status-help');
+            const saveDraftBtn = document.getElementById('saveDraftBtn');
+            const editForm = document.getElementById('editForm');
+
+            // Character counter for content
+            const charCounter = document.createElement('small');
+            charCounter.className = 'form-text text-muted';
+            charCounter.innerHTML = '<i class="bi bi-info-circle me-1"></i>Character count: 0';
+            if (contentTextarea) {
+                contentTextarea.parentNode.appendChild(charCounter);
+            }
+
+            // Update preview on title input
+            if (titleInput && previewTitle) {
+                titleInput.addEventListener('input', function() {
+                    previewTitle.textContent = this.value || 'Title will appear here...';
+                    previewTitle.className = this.value ? 'preview-title text-dark fw-bold' : 'preview-title text-muted';
+                });
+            }
+
+            // Update preview on headline input
+            if (headlineInput && previewHeadline) {
+                headlineInput.addEventListener('input', function() {
+                    previewHeadline.textContent = this.value || 'Headline preview...';
+                    previewHeadline.className = this.value ? 'preview-headline small text-dark' : 'preview-headline small text-muted';
+                });
+            }
+
+            // Character counter for content
+            if (contentTextarea && charCounter) {
+                contentTextarea.addEventListener('input', function() {
+                    const count = this.value.length;
+                    charCounter.innerHTML = `<i class="bi bi-info-circle me-1"></i>Character count: ${count}`;
+
+                    // Color coding for length
+                    if (count > 2000) {
+                        charCounter.className = 'form-text text-success';
+                    } else if (count > 1000) {
+                        charCounter.className = 'form-text text-warning';
+                    } else {
+                        charCounter.className = 'form-text text-muted';
+                    }
+                });
+
+                // Trigger initial count
+                contentTextarea.dispatchEvent(new Event('input'));
+            }
+
+            // Update publish switch text and status
+            if (publishSwitch && publishText && statusHelp) {
+                publishSwitch.addEventListener('change', function() {
+                    const isPublished = this.checked;
+                    publishText.textContent = isPublished ? 'Published' : 'Draft';
+                    statusHelp.textContent = isPublished ? 'Article is visible to readers' : 'Article is saved as draft';
+
+                    // Update the main status badge
+                    const statusBadge = document.querySelector('.badge.fs-6');
+                    if (statusBadge) {
+                        statusBadge.textContent = isPublished ? 'Published' : 'Draft';
+                        statusBadge.className = isPublished ? 'badge bg-success fs-6' : 'badge bg-secondary fs-6';
+                    }
+                });
+            }
+
+            // Save as draft functionality
+            if (saveDraftBtn && editForm) {
+                saveDraftBtn.addEventListener('click', function() {
+                    // Temporarily uncheck publish status
+                    const originalStatus = publishSwitch.checked;
+                    publishSwitch.checked = false;
+
+                    // Add loading state
+                    this.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Saving...';
+                    this.disabled = true;
+
+                    // Submit form
+                    editForm.submit();
+
+                    // Restore original status (in case submission fails)
+                    setTimeout(() => {
+                        publishSwitch.checked = originalStatus;
+                        this.innerHTML = '<i class="bi bi-file-earmark me-2"></i>Save Draft';
+                        this.disabled = false;
+                    }, 3000);
+                });
+            }
+
+            // Form validation
+            if (editForm) {
+                editForm.addEventListener('submit', function(e) {
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Show validation feedback
+                        const firstInvalid = this.querySelector(':invalid');
+                        if (firstInvalid) {
+                            firstInvalid.focus();
+
+                            // Show alert
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+                            alertDiv.innerHTML = `
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Please fill in all required fields before saving.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            `;
+
+                            const modalBody = document.querySelector('.modal-body');
+                            modalBody.insertBefore(alertDiv, modalBody.firstChild);
+
+                            // Auto-remove alert after 5 seconds
+                            setTimeout(() => {
+                                if (alertDiv.parentNode) {
+                                    alertDiv.remove();
+                                }
+                            }, 5000);
+                        }
+                    } else {
+                        // Add loading state to submit button
+                        const submitBtn = this.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Saving...';
+                            submitBtn.disabled = true;
+                        }
+                    }
+
+                    this.classList.add('was-validated');
+                });
+            }
+
+            // Auto-save functionality (every 30 seconds)
+            let autoSaveTimer;
+            const autoSaveInterval = 30000; // 30 seconds
+
+            function startAutoSave() {
+                autoSaveTimer = setInterval(() => {
+                    if (titleInput.value || headlineInput.value || contentTextarea.value) {
+                        // Create a hidden form for auto-save
+                        const autoSaveForm = document.createElement('form');
+                        autoSaveForm.method = 'POST';
+                        autoSaveForm.action = editForm.action;
+                        autoSaveForm.style.display = 'none';
+
+                        // Copy all form data
+                        const formData = new FormData(editForm);
+                        formData.set('NewsStatus', 'false'); // Always save as draft for auto-save
+
+                        for (let [key, value] of formData.entries()) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = value;
+                            autoSaveForm.appendChild(input);
+                        }
+
+                        document.body.appendChild(autoSaveForm);
+
+                        // Show auto-save indicator
+                        const autoSaveIndicator = document.createElement('div');
+                        autoSaveIndicator.className = 'position-fixed top-0 end-0 m-3 alert alert-info alert-dismissible fade show';
+                        autoSaveIndicator.innerHTML = `
+                            <i class="bi bi-cloud-check me-2"></i>Auto-saved
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        `;
+                        autoSaveIndicator.style.zIndex = '9999';
+                        document.body.appendChild(autoSaveIndicator);
+
+                        // Remove indicator after 3 seconds
+                        setTimeout(() => {
+                            if (autoSaveIndicator.parentNode) {
+                                autoSaveIndicator.remove();
+                            }
+                        }, 3000);
+
+                        // Update last saved time
+                        const lastSavedElement = document.querySelector('.card-body small');
+                        if (lastSavedElement && lastSavedElement.textContent.includes('Last saved:')) {
+                            lastSavedElement.innerHTML = '<i class="bi bi-calendar3 text-muted me-2"></i>Last saved: Just now';
+                        }
+
+                        // Clean up
+                        autoSaveForm.remove();
+                    }
+                }, autoSaveInterval);
+            }
+
+            // Start auto-save when user starts typing
+            [titleInput, headlineInput, contentTextarea].forEach(element => {
+                if (element) {
+                    element.addEventListener('input', () => {
+                        if (!autoSaveTimer) {
+                            startAutoSave();
+                        }
+                    }, { once: true });
+                }
+            });
+
+            // Clear auto-save timer when modal is closed
+            const modal = document.getElementById('editNewsArticleModal');
+            if (modal) {
+                modal.addEventListener('hidden.bs.modal', () => {
+                    if (autoSaveTimer) {
+                        clearInterval(autoSaveTimer);
+                        autoSaveTimer = null;
+                    }
+                });
+            }
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + S to save
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    if (editForm && modal.classList.contains('show')) {
+                        editForm.dispatchEvent(new Event('submit'));
+                    }
+                }
+
+                // Ctrl/Cmd + D to save as draft
+                if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                    e.preventDefault();
+                    if (saveDraftBtn && modal.classList.contains('show')) {
+                        saveDraftBtn.click();
+                    }
+                }
+
+                // Escape to close modal
+                if (e.key === 'Escape' && modal.classList.contains('show')) {
+                    const closeBtn = modal.querySelector('.btn-close');
+                    if (closeBtn) {
+                        closeBtn.click();
+                    }
+                }
+            });
+
+            // Word count and reading time estimation
+            if (contentTextarea) {
+                const wordCountElement = document.createElement('small');
+                wordCountElement.className = 'form-text text-info';
+                contentTextarea.parentNode.appendChild(wordCountElement);
+
+                contentTextarea.addEventListener('input', function() {
+                    const words = this.value.trim().split(/\s+/).filter(word => word.length > 0).length;
+                    const readingTime = Math.ceil(words / 200); // Average reading speed
+                    wordCountElement.innerHTML = `<i class="bi bi-book me-1"></i>Words: ${words} | Reading time: ~${readingTime} min`;
+                });
+
+                // Trigger initial count
+                contentTextarea.dispatchEvent(new Event('input'));
+            }
+        });
+    </script>
 }
