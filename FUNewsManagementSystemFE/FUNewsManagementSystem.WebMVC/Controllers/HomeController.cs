@@ -291,7 +291,7 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
         }
 
 
-        public async Task<IActionResult> Index(string searchQuery = "", string sortBy = "CreatedDate", string sortOrder = "desc", int pageNumber = 1, int pageSize = 3)
+        public async Task<IActionResult> Index(string searchQuery = "", string sortBy = "CreatedDate", string sortOrder = "desc", int pageNumber = 1, int pageSize = 6)
         {
             try
             {
