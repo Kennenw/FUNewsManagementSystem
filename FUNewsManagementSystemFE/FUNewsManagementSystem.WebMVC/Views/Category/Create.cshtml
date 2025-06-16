@@ -65,116 +65,45 @@
         </div>
     </div>
 
-    <!-- Enhanced Modal -->
+    <!-- Simple Modal -->
     <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <div class="d-flex align-items-center">
-                        <div class="modal-icon me-3">
-                            <i class="bi bi-plus-circle"></i>
-                        </div>
-                        <div>
-                            <h5 class="modal-title mb-0" id="createCategoryModalLabel">Create New Category</h5>
-                            <small class="text-light opacity-75">Fill in the details below to create a category</small>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="createCategoryModalLabel">Create New Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <form asp-action="Create" method="post" id="createCategoryForm">
-                        <!-- Progress Indicator -->
-                        <div class="progress-indicator mb-4">
-                            <div class="step active" data-step="1">
-                                <div class="step-icon"><i class="bi bi-1-circle"></i></div>
-                                <div class="step-text">Basic Info</div>
-                            </div>
-                            <div class="step" data-step="2">
-                                <div class="step-icon"><i class="bi bi-2-circle"></i></div>
-                                <div class="step-text">Details</div>
-                            </div>
-                            <div class="step" data-step="3">
-                                <div class="step-icon"><i class="bi bi-3-circle"></i></div>
-                                <div class="step-text">Hierarchy</div>
-                            </div>
+                        <!-- Category Name -->
+                        <div class="mb-3">
+                            <label asp-for="CategoryName" class="form-label">Category Name *</label>
+                            <input asp-for="CategoryName" class="form-control" id="categoryName" required maxlength="100" />
+                            <span asp-validation-for="CategoryName" class="text-danger"></span>
                         </div>
 
-                        <!-- Step 1: Category Name -->
-                        <div class="form-step active" data-step="1">
-                            <div class="step-header mb-3">
-                                <h6 class="step-title">Basic Information</h6>
-                                <p class="step-description">Enter the category name and basic details</p>
-                            </div>
-                            <div class="form-floating mb-4">
-                                <input asp-for="CategoryName" class="form-control form-control-lg" id="categoryName"
-                                       placeholder="Enter category name" required maxlength="100" />
-                                <label for="categoryName" class="form-label">
-                                    <i class="bi bi-tag me-2"></i>Category Name *
-                                </label>
-                                <span asp-validation-for="CategoryName" class="text-danger validation-message"></span>
-                                <div class="form-text">
-                                    <span id="nameCounter">0</span>/100 characters
-                                </div>
-                            </div>
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label asp-for="CategoryDescription" class="form-label">Description</label>
+                            <textarea asp-for="CategoryDescription" class="form-control" id="categoryDescription" rows="3" maxlength="500"></textarea>
+                            <span asp-validation-for="CategoryDescription" class="text-danger"></span>
                         </div>
 
-                        <!-- Step 2: Description -->
-                        <div class="form-step" data-step="2">
-                            <div class="step-header mb-3">
-                                <h6 class="step-title">Category Details</h6>
-                                <p class="step-description">Provide a description for this category</p>
-                            </div>
-                            <div class="form-floating mb-4">
-                                <textarea asp-for="CategoryDesciption" class="form-control" id="categoryDescription"
-                                          placeholder="Enter category description" style="height: 120px;" maxlength="500"></textarea>
-                                <label for="categoryDescription" class="form-label">
-                                    <i class="bi bi-text-paragraph me-2"></i>Description (Optional)
-                                </label>
-                                <span asp-validation-for="CategoryDesciption" class="text-danger validation-message"></span>
-                                <div class="form-text">
-                                    <span id="descCounter">0</span>/500 characters
-                                </div>
-                            </div>
+                        <!-- Parent Category -->
+                        <div class="mb-3">
+                            <label asp-for="ParentCategoryId" class="form-label">Parent Category</label>
+                            <select asp-for="ParentCategoryId" class="form-select" id="parentCategory" asp-items="@ViewBag.Categories">
+                                <option value="">-- No Parent Category --</option>
+                            </select>
+                            <span asp-validation-for="ParentCategoryId" class="text-danger"></span>
+                            <div class="form-text">Leave empty to create a top-level category</div>
                         </div>
 
-                        <!-- Step 3: Parent Category -->
-                        <div class="form-step" data-step="3">
-                            <div class="step-header mb-3">
-                                <h6 class="step-title">Category Hierarchy</h6>
-                                <p class="step-description">Choose a parent category if needed</p>
-                            </div>
-                            <div class="form-floating mb-4">
-                                <select asp-for="ParentCategoryId" class="form-select" id="parentCategory" asp-items="@ViewBag.Categories">
-                                    <option value="">-- No Parent Category --</option>
-                                </select>
-                                <label for="parentCategory" class="form-label">
-                                    <i class="bi bi-diagram-3 me-2"></i>Parent Category (Optional)
-                                </label>
-                                <span asp-validation-for="ParentCategoryId" class="text-danger validation-message"></span>
-                                <div class="form-text">
-                                    Leave empty to create a top-level category
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Navigation Buttons -->
-                        <div class="d-flex justify-content-between pt-3 border-top">
-                            <button type="button" class="btn btn-outline-secondary" id="prevBtn" style="display: none;">
-                                <i class="bi bi-arrow-left me-2"></i>Previous
-                            </button>
-                            <div class="ms-auto d-flex gap-2">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                    <i class="bi bi-x-circle me-2"></i>Cancel
-                                </button>
-                                <button type="button" class="btn btn-primary" id="nextBtn">
-                                    Next<i class="bi bi-arrow-right ms-2"></i>
-                                </button>
-                                <button type="submit" class="btn btn-success" id="createBtn" style="display: none;">
-                                    <i class="bi bi-check-circle me-2"></i>Create Category
-                                </button>
-                            </div>
-                        </div>
                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="createCategoryForm" class="btn btn-success">Create Category</button>
                 </div>
             </div>
         </div>
@@ -246,158 +175,30 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            let currentStep = 1;
-            const totalSteps = 3;
+            console.log('DOM loaded, initializing simple category form...');
 
             const form = document.getElementById('createCategoryForm');
-            const nextBtn = document.getElementById('nextBtn');
-            const prevBtn = document.getElementById('prevBtn');
-            const createBtn = document.getElementById('createBtn');
-
-            // Character counters
-            const nameInput = document.getElementById('categoryName');
-            const descInput = document.getElementById('categoryDescription');
-            const nameCounter = document.getElementById('nameCounter');
-            const descCounter = document.getElementById('descCounter');
-
-            // Update character counters
-            nameInput.addEventListener('input', function() {
-                nameCounter.textContent = this.value.length;
-                if (this.value.length > 80) {
-                    nameCounter.style.color = '#ef4444';
-                } else {
-                    nameCounter.style.color = '#64748b';
-                }
-            });
-
-            descInput.addEventListener('input', function() {
-                descCounter.textContent = this.value.length;
-                if (this.value.length > 400) {
-                    descCounter.style.color = '#ef4444';
-                } else {
-                    descCounter.style.color = '#64748b';
-                }
-            });
-
-            // Step navigation
-            function updateStep(step) {
-                // Update progress indicator
-                document.querySelectorAll('.progress-indicator .step').forEach((el, index) => {
-                    if (index + 1 <= step) {
-                        el.classList.add('active');
-                    } else {
-                        el.classList.remove('active');
-                    }
-                });
-
-                // Show/hide form steps
-                document.querySelectorAll('.form-step').forEach(el => {
-                    el.classList.remove('active');
-                });
-                document.querySelector(`[data-step="${step}"]`).classList.add('active');
-
-                // Update buttons
-                if (step === 1) {
-                    prevBtn.style.display = 'none';
-                } else {
-                    prevBtn.style.display = 'inline-block';
-                }
-
-                if (step === totalSteps) {
-                    nextBtn.style.display = 'none';
-                    createBtn.style.display = 'inline-block';
-                } else {
-                    nextBtn.style.display = 'inline-block';
-                    createBtn.style.display = 'none';
-                }
-            }
-
-            nextBtn.addEventListener('click', function() {
-                if (validateCurrentStep()) {
-                    if (currentStep < totalSteps) {
-                        currentStep++;
-                        updateStep(currentStep);
-                    }
-                }
-            });
-
-            prevBtn.addEventListener('click', function() {
-                if (currentStep > 1) {
-                    currentStep--;
-                    updateStep(currentStep);
-                }
-            });
-
-            function validateCurrentStep() {
-                if (currentStep === 1) {
-                    const nameInput = document.getElementById('categoryName');
-                    if (!nameInput.value.trim()) {
-                        nameInput.classList.add('is-invalid');
-                        nameInput.focus();
-                        return false;
-                    } else {
-                        nameInput.classList.remove('is-invalid');
-                        nameInput.classList.add('is-valid');
-                    }
-                }
-                return true;
-            }
-
-            // Form submission
-            form.addEventListener('submit', function(e) {
-                createBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creating...';
-                createBtn.disabled = true;
-                createBtn.classList.add('loading');
-            });
-
-            // Modal events
             const modal = document.getElementById('createCategoryModal');
-            modal.addEventListener('shown.bs.modal', function() {
-                currentStep = 1;
-                updateStep(currentStep);
-                nameInput.focus();
-            });
 
-            modal.addEventListener('hidden.bs.modal', function() {
-                // Reset form
-                form.reset();
-                document.querySelectorAll('.form-control, .form-select').forEach(el => {
-                    el.classList.remove('is-valid', 'is-invalid');
+            console.log('Form found:', form);
+            console.log('Modal found:', modal);
+
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    console.log('Form submitted');
                 });
-                nameCounter.textContent = '0';
-                descCounter.textContent = '0';
-                currentStep = 1;
-                updateStep(currentStep);
-            });
+            }
 
-            // Enhanced form validation
-            const inputs = form.querySelectorAll('.form-control, .form-select');
-            inputs.forEach(input => {
-                input.addEventListener('blur', function() {
-                    if (this.value.trim() && this.checkValidity()) {
-                        this.classList.add('is-valid');
-                        this.classList.remove('is-invalid');
+            if (modal) {
+                modal.addEventListener('shown.bs.modal', function() {
+                    console.log('Modal shown');
+                    const nameInput = document.getElementById('categoryName');
+                    if (nameInput) {
+                        nameInput.focus();
                     }
                 });
+            }
 
-                input.addEventListener('input', function() {
-                    if (this.classList.contains('is-invalid') && this.checkValidity()) {
-                        this.classList.remove('is-invalid');
-                        this.classList.add('is-valid');
-                    }
-                });
-            });
-
-            // Auto-hide alerts
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                setTimeout(() => {
-                    if (alert && alert.classList.contains('show')) {
-                        const bsAlert = new bootstrap.Alert(alert);
-                        bsAlert.close();
-                    }
-                }, 5000);
-            });
         });
     </script>
 

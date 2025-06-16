@@ -129,9 +129,24 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            model.IsActive = true;
-            var response = await _httpClient.PostAsJsonAsync("Categories", model);
+            // Prepare payload to match API schema exactly (note: API has typo "CategoryDesciption")
+            var payload = new
+            {
+                categoryName = model.CategoryName?.Trim(),
+                categoryDesciption = model.CategoryDescription?.Trim() ?? "", // API expects this field with typo
+                parentCategoryId = model.ParentCategoryId.HasValue && model.ParentCategoryId.Value > 0 ? model.ParentCategoryId.Value : (int?)null,
+                isActive = true
+            };
+
+            // Debug logging
+            var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
+            Console.WriteLine($"Sending payload: {payloadJson}");
+
+            var response = await _httpClient.PostAsJsonAsync("Categories", payload);
             var rawJson = await response.Content.ReadAsStringAsync();
+
+            Console.WriteLine($"Response status: {response.StatusCode}");
+            Console.WriteLine($"Response body: {rawJson}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -175,9 +190,9 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
             UpdateCategoryViewModels updateCategory = new UpdateCategoryViewModels()
             {
                 CategoryId = category.CategoryId,
-                CategoryDesciption = category.CategoryDesciption,
+                CategoryDescription = category.CategoryDescription,
                 CategoryName = category.CategoryName,
-                IsActive = category.IsActive,
+                IsActive = category.IsActive ?? true,
                 ParentCategoryId = category.ParentCategoryId,
             };
 
@@ -203,8 +218,18 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
             }
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            model.IsActive = true;
-            var response = await _httpClient.PutAsJsonAsync($"Categories/{id}", model);
+
+            // Prepare payload to match API schema exactly (note: API has typo "CategoryDesciption")
+            var payload = new
+            {
+                categoryId = model.CategoryId,
+                categoryName = model.CategoryName?.Trim(),
+                categoryDesciption = model.CategoryDescription?.Trim() ?? "", // API expects this field with typo
+                parentCategoryId = model.ParentCategoryId.HasValue && model.ParentCategoryId.Value > 0 ? model.ParentCategoryId.Value : (int?)null,
+                isActive = true
+            };
+
+            var response = await _httpClient.PutAsJsonAsync($"Categories/{id}", payload);
             var rawJson = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
@@ -221,21 +246,36 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var token = Request.Cookies["Token"];
-            if (string.IsNullOrEmpty(token))
+            try
             {
-                return Unauthorized();
+                var token = Request.Cookies["Token"];
+                if (string.IsNullOrEmpty(token))
+                {
+                    return RedirectToAction("Index", "Auth");
+                }
+
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                // Use the correct OData endpoint
+                var response = await _httpClient.DeleteAsync($"odata/Categories({id})");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Category deleted successfully!";
+                    return RedirectToAction("Index");
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Delete API Error: {response.StatusCode} - {errorContent}");
+                TempData["Error"] = $"Failed to delete category: {errorContent}";
+                return RedirectToAction("Index");
             }
-
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var response = await _httpClient.DeleteAsync($"Categories/{id}");
-
-            if (response.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                return Ok();
+                Console.WriteLine($"Delete Exception: {ex.Message}");
+                TempData["Error"] = $"Error deleting category: {ex.Message}";
+                return RedirectToAction("Index");
             }
-
-            return StatusCode((int)response.StatusCode);
         }
 
         // Load categories for dropdown

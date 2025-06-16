@@ -167,12 +167,20 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
         {
             var token = Request.Cookies["Token"];
             if (string.IsNullOrEmpty(token))
-                return Unauthorized();
+                return RedirectToAction("Index", "Auth");
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var response = await _httpClient.DeleteAsync($"NewsArticles/{id}");
 
-            return response.IsSuccessStatusCode ? Ok() : StatusCode((int)response.StatusCode);
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["Success"] = "News article deleted successfully!";
+                return RedirectToAction("Index");
+            }
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            TempData["Error"] = $"Failed to delete article: {errorContent}";
+            return RedirectToAction("Index");
         }
 
 
@@ -213,15 +221,15 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
             }
             var payload = new
             {
-                model.NewsTitle,
-                model.Headline,
-                CreatedDate = DateTime.Now,
-                model.NewsContent,
-                model.NewsSource,
-                model.CategoryId,
-                NewsStatus = true,
-                tagIds = model.SelectedTagIds,
-                model.CreatedById
+                newsTitle = model.NewsTitle,
+                headline = model.Headline,
+                createdDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                newsContent = model.NewsContent,
+                newsSource = model.NewsSource,
+                categoryId = model.CategoryId ?? 0,
+                newsStatus = true,
+                tagIds = model.SelectedTagIds ?? new List<int>(),
+                createdById = model.CreatedById ?? 0
             };
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

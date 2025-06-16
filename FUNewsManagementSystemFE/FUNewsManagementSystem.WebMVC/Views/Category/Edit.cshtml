@@ -56,7 +56,7 @@
                         <div class="col-12">
                             <div class="info-item">
                                 <label class="info-label">Description</label>
-                                <div class="info-value">@(string.IsNullOrEmpty(Model.CategoryDesciption) ? "No description provided" : Model.CategoryDesciption)</div>
+                                <div class="info-value">@(string.IsNullOrEmpty(Model.CategoryDescription) ? "No description provided" : Model.CategoryDescription)</div>
                             </div>
                         </div>
                     </div>
@@ -96,12 +96,12 @@
 
                         <!-- Description Field -->
                         <div class="form-floating mb-4">
-                            <textarea asp-for="CategoryDesciption" class="form-control" id="categoryDescription"
+                            <textarea asp-for="CategoryDescription" class="form-control" id="categoryDescription"
                                       placeholder="Enter category description" style="height: 120px;"></textarea>
                             <label for="categoryDescription" class="form-label">
                                 <i class="bi bi-text-paragraph me-2"></i>Description
                             </label>
-                            <span asp-validation-for="CategoryDesciption" class="text-danger validation-message"></span>
+                            <span asp-validation-for="CategoryDescription" class="text-danger validation-message"></span>
                         </div>
 
                         <!-- Parent Category Field -->

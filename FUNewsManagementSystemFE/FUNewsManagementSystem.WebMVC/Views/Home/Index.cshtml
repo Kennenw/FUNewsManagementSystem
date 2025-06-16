@@ -304,14 +304,28 @@ else
     </div>
 }
 
+<!-- Success Display -->
+@if (!string.IsNullOrEmpty(TempData["Success"] as string))
+{
+    <div class="success-notification">
+        <div class="container-fluid">
+            <div class="success-content">
+                <span class="success-icon">✅</span>
+                <span class="success-text">@TempData["Success"]</span>
+                <button class="success-close" onclick="this.parentElement.parentElement.remove()">❌</button>
+            </div>
+        </div>
+    </div>
+}
+
 <!-- Error Display -->
-@if (!string.IsNullOrEmpty(ViewBag.Error))
+@if (!string.IsNullOrEmpty(ViewBag.Error) || !string.IsNullOrEmpty(TempData["Error"] as string))
 {
     <div class="error-notification">
         <div class="container-fluid">
             <div class="error-content">
                 <span class="error-icon">⚠️</span>
-                <span class="error-text">@ViewBag.Error</span>
+                <span class="error-text">@(ViewBag.Error ?? TempData["Error"])</span>
                 <button class="error-close" onclick="this.parentElement.parentElement.remove()">❌</button>
             </div>
         </div>
@@ -363,9 +377,16 @@ else
                 });
             });
 
-            // Auto-dismiss error notifications
+            // Auto-dismiss notifications
             setTimeout(() => {
+                const successNotification = document.querySelector('.success-notification');
                 const errorNotification = document.querySelector('.error-notification');
+
+                if (successNotification) {
+                    successNotification.style.opacity = '0';
+                    setTimeout(() => successNotification.remove(), 300);
+                }
+
                 if (errorNotification) {
                     errorNotification.style.opacity = '0';
                     setTimeout(() => errorNotification.remove(), 300);
@@ -1076,12 +1097,23 @@ else
         }
 
         /* Error Notification */
-        .error-notification {
+        .success-notification, .error-notification {
             position: fixed;
             top: 2rem;
             right: 2rem;
             z-index: 9999;
             transition: all 0.3s ease;
+        }
+
+        .success-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(72, 187, 120, 0.95);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(72, 187, 120, 0.3);
         }
 
         .error-content {
@@ -1095,15 +1127,15 @@ else
             box-shadow: 0 10px 40px rgba(245, 101, 101, 0.3);
         }
 
-        .error-icon {
+        .success-icon, .error-icon {
             font-size: 1.2rem;
         }
 
-        .error-text {
+        .success-text, .error-text {
             font-weight: 500;
         }
 
-        .error-close {
+        .success-close, .error-close {
             background: none;
             border: none;
             color: white;
@@ -1113,7 +1145,7 @@ else
             transition: opacity 0.3s ease;
         }
 
-            .error-close:hover {
+            .success-close:hover, .error-close:hover {
                 opacity: 1;
             }
     </style>

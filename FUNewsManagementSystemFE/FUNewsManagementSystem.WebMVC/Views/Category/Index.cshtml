@@ -225,10 +225,10 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-3">
-                                        @if (!string.IsNullOrEmpty(item.CategoryDesciption))
+                                        @if (!string.IsNullOrEmpty(item.CategoryDescription))
                                         {
-                                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="@item.CategoryDesciption">
-                                                @item.CategoryDesciption
+                                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="@item.CategoryDescription">
+                                                @item.CategoryDescription
                                             </span>
                                         }
                                         else
@@ -252,53 +252,16 @@
                                     </td>
                                     <td class="px-4 py-3 text-center">
                                         <div class="btn-group" role="group">
-                                            <a asp-action="Edit" asp-route-id="@item.CategoryId" 
+                                            <a asp-action="Edit" asp-route-id="@item.CategoryId"
                                                class="btn btn-outline-primary btn-sm" title="Edit Category">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <button class="btn btn-outline-danger btn-sm" 
-                                                    data-bs-toggle="modal" 
+                                            <button class="btn btn-outline-danger btn-sm"
+                                                    data-bs-toggle="modal"
                                                     data-bs-target="#deleteModal_@item.CategoryId"
                                                     title="Delete Category">
                                                 <i class="bi bi-trash"></i>
                                             </button>
-                                        </div>
-
-                                        <!-- Enhanced Delete Confirmation Modal -->
-                                        <div class="modal fade" id="deleteModal_@item.CategoryId" tabindex="-1" aria-labelledby="deleteModalLabel_@item.CategoryId" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content border-0 shadow-lg">
-                                                    <div class="modal-header bg-danger text-white border-0">
-                                                        <h5 class="modal-title" id="deleteModalLabel_@item.CategoryId">
-                                                            <i class="bi bi-exclamation-triangle me-2"></i>Confirm Deletion
-                                                        </h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body p-4">
-                                                        <div class="text-center mb-3">
-                                                            <i class="bi bi-trash3 text-danger" style="font-size: 3rem;"></i>
-                                                        </div>
-                                                        <p class="text-center mb-3">
-                                                            Are you sure you want to delete the category <strong>"@item.CategoryName"</strong>?
-                                                        </p>
-                                                        <div class="alert alert-warning d-flex align-items-center" role="alert">
-                                                            <i class="bi bi-exclamation-triangle me-2"></i>
-                                                            <small>This action cannot be undone and may affect related content.</small>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer border-0 pt-0">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                            <i class="bi bi-x-circle me-2"></i>Cancel
-                                                        </button>
-                                                        <form asp-action="Delete" method="post" style="display:inline;">
-                                                            <input type="hidden" name="id" value="@item.CategoryId" />
-                                                            <button type="submit" class="btn btn-danger">
-                                                                <i class="bi bi-trash me-2"></i>Delete Category
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -426,20 +389,110 @@
         </div>
     }
 
+    <!-- Success Alert -->
+    @if (!string.IsNullOrEmpty(TempData["Success"] as string))
+    {
+        <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <!-- Error Alert -->
-    @if (!string.IsNullOrEmpty(ViewBag.Error))
+    @if (!string.IsNullOrEmpty(ViewBag.Error) || !string.IsNullOrEmpty(TempData["Error"] as string))
     {
         <div class="alert alert-danger alert-dismissible fade show mt-4" role="alert">
             <i class="bi bi-exclamation-triangle me-2"></i>
-            @ViewBag.Error
+            @(ViewBag.Error ?? TempData["Error"])
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 </div>
 
+<!-- Delete Modals -->
+@if (Model.Item != null && Model.Item.Any())
+{
+    @foreach (var item in Model.Item)
+    {
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteModal_@item.CategoryId" tabindex="-1" aria-labelledby="deleteModalLabel_@item.CategoryId" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-danger text-white border-0">
+                        <h5 class="modal-title" id="deleteModalLabel_@item.CategoryId">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Confirm Deletion
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="text-center mb-3">
+                            <i class="bi bi-trash3 text-danger" style="font-size: 3rem;"></i>
+                        </div>
+                        <p class="text-center mb-3">
+                            Are you sure you want to delete the category <strong>"@item.CategoryName"</strong>?
+                        </p>
+                        <div class="alert alert-warning d-flex align-items-center" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <small>This action cannot be undone and may affect related content.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </button>
+                        <form asp-action="Delete" method="post" style="display:inline;">
+                            <input type="hidden" name="id" value="@item.CategoryId" />
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i>Delete Category
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Category page loaded, checking modals...');
+
+            // Check if Bootstrap is loaded
+            if (typeof bootstrap !== 'undefined') {
+                console.log('Bootstrap is loaded');
+            } else {
+                console.error('Bootstrap is not loaded!');
+            }
+
+            // Find all delete buttons
+            const deleteButtons = document.querySelectorAll('[data-bs-toggle="modal"]');
+            console.log('Found delete buttons:', deleteButtons.length);
+
+            deleteButtons.forEach((button, index) => {
+                const target = button.getAttribute('data-bs-target');
+                const modal = document.querySelector(target);
+                console.log(`Button ${index}: target=${target}, modal found:`, modal !== null);
+
+                button.addEventListener('click', function() {
+                    console.log('Delete button clicked for:', target);
+                });
+            });
+
+            // Listen for modal events
+            document.addEventListener('show.bs.modal', function(e) {
+                console.log('Modal showing:', e.target.id);
+            });
+
+            document.addEventListener('shown.bs.modal', function(e) {
+                console.log('Modal shown:', e.target.id);
+            });
+        });
+    </script>
     
     <style>
         .stats-card {

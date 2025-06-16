@@ -6,7 +6,7 @@ namespace FUNewsManagementSystem.WebMVC.Models
     {
         public int CategoryId { get; set; }
         public string CategoryName { get; set; }
-        public string CategoryDesciption { get; set; }
+        public string CategoryDescription { get; set; }
         public int? ParentCategoryId { get; set; }
         public bool? IsActive { get; set; }
     }
@@ -16,13 +16,13 @@ namespace FUNewsManagementSystem.WebMVC.Models
         [Required]
         [MaxLength(100)]
         public string CategoryName { get; set; } = null!;
-        [Required]
+
         [MaxLength(250)]
-        public string CategoryDesciption { get; set; } = null!;
+        public string? CategoryDescription { get; set; } = "";
 
-        public short? ParentCategoryId { get; set; } = null;
+        public int? ParentCategoryId { get; set; } = null;
 
-        public bool? IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
     }
 
     public class UpdateCategoryViewModels
@@ -31,10 +31,10 @@ namespace FUNewsManagementSystem.WebMVC.Models
         [MaxLength(100)]
         public string? CategoryName { get; set; } = null!;
         [MaxLength(250)]
-        public string? CategoryDesciption { get; set; } = null!;
+        public string? CategoryDescription { get; set; }
 
         public int? ParentCategoryId { get; set; } = null;
 
-        public bool? IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
     }
 }
