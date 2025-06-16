@@ -256,8 +256,9 @@ namespace FUNewsManagementSystem.WebMVC.Controllers
 
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                // Use the correct OData endpoint
-                var response = await _httpClient.DeleteAsync($"odata/Categories({id})");
+                // Use the same format as other controllers (NewsArticles, SystemAccounts)
+                Console.WriteLine($"Attempting to delete category with ID: {id}");
+                var response = await _httpClient.DeleteAsync($"Categories/{id}");
 
                 if (response.IsSuccessStatusCode)
                 {
